@@ -53,7 +53,7 @@ def play_video():
     # When the start button is hit, clear buffer and start recording
     is_recording = True
     buffer.clear()
-    print("Recording started. Press SPACE to stop and replay last 4 seconds...")
+    print("Recording started.")
 
     # Start updating frames
     update_frame()
