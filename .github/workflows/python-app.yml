@@ -33,9 +33,10 @@ jobs:
         python-version: ${{ matrix.python-version }} # References Python Versions
     - name: Install dependencies
       run: |
-        python -m pip install --upgrade pip
-        pip install flake8 black pytest
-        bash -c "if [ -f requirements.txt ]; then pip install -r requirements.txt; fi"
+        pip install --verbose flake8 black pytest
+        bash -c "if [ -f requirements.txt ]; then pip install --verbose -r requirements.txt; fi"
+      # python -m pip install --upgrade pip
+      
         
     - name: Lint with flake8
       run: |
