@@ -1,5 +1,8 @@
-# This workflow will install Python dependencies, run tests and lint with a single version of Python
-# For more information see: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-python
+# This workflow performs the following:
+# 1. Deploys on Ubuntu, Windows, and MacOS
+# 2. Installs Python Dependences (v. 3.9 and 3.10)
+# 3. Lints Python files with flake8 and Black
+# 4. Runs tests using pytest
 
 name: Python application
 
@@ -15,19 +18,19 @@ permissions:
 jobs:
   build:
 
-    runs-on: ${{ matrix.os }}
+    runs-on: ${{ matrix.os }} # References environments to run
 
     strategy:
       matrix:
-        os: [ ubuntu-latest, windows-latest, macos-latest]
-        python-version: [ '3.9', '3.10' ]
+        os: [ ubuntu-latest, windows-latest, macos-latest] # Defines environments to deploy on
+        python-version: [ '3.9', '3.10' ] # Defines versions of Python that should be built
 
     steps:
     - uses: actions/checkout@v4
     - name: Set up Python ${{ matrix.python-verison }}
       uses: actions/setup-python@v3
       with:
-        python-version: ${{ matrix.python-version }}
+        python-version: ${{ matrix.python-version }} # References Python Versions
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
@@ -40,7 +43,15 @@ jobs:
         flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
         # exit-zero treats all errors as warnings. The GitHub editor is 127 chars wide
         flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
-        
+
+    # Implementation found at https://black.readthedocs.io/en/stable/integrations/github_actions.html
+    - name: Lint with Black
+      uses: psf/black@stable
+      with:
+        options: "--check --verbose"
+        src: "./src"
+        version: "~= 22.0"
+    
     - name: Test with pytest
       run: |
         pytest
