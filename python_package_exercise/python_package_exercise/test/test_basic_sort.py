@@ -18,7 +18,8 @@
 
 import numpy as np
 import pytest
-from python_package_exercise.basic_sort_UNIQUE_SUFFIX.int_sort import bubble, quick, insertion
+from ..basic_sort_UNIQUE_SUFFIX.int_sort import bubble, quick, insertion
+
 
 def is_sorted(int_list):
     """
