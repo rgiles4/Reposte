@@ -63,6 +63,7 @@ jobs:
     
     - name: Test with pytest
       env:
-        PYTHONPATH: "${{ github.workplace }}/python_package_exercise"
+        PYTHONPATH: "${{ github.workspace }}/python_package_exercise"
       run: |
         pytest python_package_exercise/python_package_exercise/test/
+
