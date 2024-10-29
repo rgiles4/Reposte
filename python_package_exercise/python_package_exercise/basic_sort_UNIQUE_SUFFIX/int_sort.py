@@ -45,7 +45,7 @@ def quick(int_list):
     n = len(int_list)
     
     # Look at elements in array
-    for i in range(n):
+    #for i in range(n):
         
 
 def insertion(int_list):
