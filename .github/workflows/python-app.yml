@@ -18,7 +18,7 @@ permissions:
 jobs:
   build:
 
-    runs-on: windows-latest #${{ matrix.os }} # References environments to run
+    runs-on: ${{ matrix.os }} # References environments to run
 
     strategy:
       matrix:
