@@ -18,7 +18,7 @@
 
 import numpy as np
 import pytest
-
+from python_package_exercise import bubble, quick, insertion
 
 def is_sorted(int_list):
     """
@@ -38,7 +38,10 @@ def int_lists():
 
 
 def test_bubble(int_lists):
-    assert True
+    for int_list in int_lists:
+        sorted_list = int_list.copy()
+        bubble(sorted_list)
+        assert is_sorted(sorted_list)
 
 
 def test_quick(int_lists):
