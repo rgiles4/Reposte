@@ -18,14 +18,15 @@
 
 import numpy as np
 import pytest
-from ..basic_sort_UNIQUE_SUFFIX.int_sort import bubble, quick, insertion
+from python_package_exercise.basic_sort_UNIQUE_SUFFIX.int_sort import bubble, quick, insertion
+
 
 
 def is_sorted(int_list):
     """
     Testing oracle.
     """
-    return True
+    return all(int_list[i] <= int_list[i + 1] for i in range(len(int_list) - 1))
 
 
 @pytest.fixture
