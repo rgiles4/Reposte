@@ -18,7 +18,7 @@
 
 import numpy as np
 import pytest
-from python_package_exercise import bubble, quick, insertion
+from python_package_exercise.basic_sort_UNIQUE_SUFFIX.int_sort import bubble, quick, insertion
 
 def is_sorted(int_list):
     """
@@ -49,5 +49,8 @@ def test_quick(int_lists):
 
 
 def test_insertion(int_lists):
-    assert True
+    for int_list in int_lists:
+        sorted_list = int_list.copy()
+        insertion(sorted_list)
+        assert is_sorted(sorted_list)
 

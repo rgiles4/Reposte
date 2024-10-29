@@ -63,4 +63,4 @@ jobs:
     
     - name: Test with pytest
       run: |
-        pytest
+        pytest python_package_exercise/python_package_exercise/test/
