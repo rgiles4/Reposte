@@ -66,7 +66,7 @@ def replay_video():
     global buffer
 
     # Create a video path for saving a reaply
-    video_path = os.path.join(os.getcwd(), "Video-Output")
+    video_path = os.path.join(os.getcwd(), "Video-Output.avi")
     height, width, layers = buffer[0].shape
     fourcc = cv2.VideoWriter_fourcc(*'XVID')
 
