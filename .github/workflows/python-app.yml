@@ -27,6 +27,7 @@ jobs:
 
     steps:
     - uses: actions/checkout@v4
+    - uses: pre-commit/action@v3.0.1
     - name: Set up Python ${{ matrix.python-version }}
       uses: actions/setup-python@v3
       with:
@@ -43,14 +44,6 @@ jobs:
       run: |
         pip list  
 
-        
-    - name: Lint with flake8
-      run: |
-        # stop the build if there are Python syntax errors or undefined names
-        flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
-        # exit-zero treats all errors as warnings. The GitHub editor is 127 chars wide
-        flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
-
     # Implementation found at https://black.readthedocs.io/en/stable/integrations/github_actions.html
     - name: Lint with Black
       uses: psf/black@stable
@@ -58,6 +51,13 @@ jobs:
         options: "--check --verbose"
         src: "./python_package_exercise/python_package_exercise"
         version: "~= 22.0"
+        
+    - name: Lint with flake8
+      run: |
+        # stop the build if there are Python syntax errors or undefined names
+        flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
+        # exit-zero treats all errors as warnings. The GitHub editor is 127 chars wide
+        flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
     
     - name: Test with pytest
       env:
