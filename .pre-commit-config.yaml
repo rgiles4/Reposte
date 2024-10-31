@@ -2,10 +2,10 @@
 
 repos:
   - repo: https://github.com/pre-commit/pre-commit-hooks
-    rev:v5.0.0
+    rev: v5.0.0
     hooks:
       - id: detect-large-files
-        args: ["--maxkb=1000']
+        args: ["--maxkb=1000"]
         
       - id: detect-aws-credentials
 
