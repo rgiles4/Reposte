@@ -1,5 +1,5 @@
 # DevOps Exercise
-![Python Package Builder]([https://github.com/rgiles4_/Reposte/actions/workflows/python-app.yml/badge.svg])
+![Python Package Builder](https://github.com/rgiles4_/Reposte/actions/workflows/python-app.yml/badge.svg)
 
 This repository creates Python package for sorting integer 
 lists using the DevOps software development approach. The
