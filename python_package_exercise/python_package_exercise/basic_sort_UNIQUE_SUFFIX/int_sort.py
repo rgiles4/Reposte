@@ -41,10 +41,26 @@ def bubble(int_list: List[int]) -> None:
 
 def quick(int_list):
     """
-    qsort docstring
+    Will sort the input list smallest to largest
+    by using quicksort recursively
+
+    Args:
+        int_list: The list to be sorted
+
+    Returns:
+        The function returns a part or the whole list sorted,
+        depending on the if statement
     """
-    # Look at elements in array
-    # for i in range(n):
+    n = len(int_list)
+
+    if n <= 1:
+        return int_list
+
+    else:
+        split = int_list[0]
+        left = [x for x in int_list[1:] if x < split]
+        right = [x for x in int_list[1:] if x >= split]
+        return quick(left) + [split] + quick(right)
 
 
 def insertion(int_list):
