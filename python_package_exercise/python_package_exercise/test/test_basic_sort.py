@@ -28,9 +28,10 @@ def is_sorted(int_list):
     """
     Testing oracle.
     """
-    return all(
-        int_list[i] <= int_list[i + 1] for i in range(len(int_list) - 1)
-        )
+    for i in range(len(int_list) - 1):
+        if not int_list[i] <= int_list[i + 1]:
+            return False
+    return True
 
 
 @pytest.fixture
