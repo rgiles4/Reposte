@@ -1,5 +1,5 @@
 # DevOps Exercise
-![Python Package Builder](https://github.com/github/docs/actions/workflows/main.yml/badge.svg)
+![Python Package Builder](https://github.com/github/docs/actions/workflows/python-app.yml/badge.svg)
 
 This repository creates Python package for sorting integer 
 lists using the DevOps software development approach. The
@@ -10,7 +10,7 @@ and MacOS latest.
 This repository utilizes a GitHub action to install dependencies,
 format, lint, test, and build the Python package on a push to main, and on pull requests.
 
-###The Action
+### The Action
 
 1. Installs Python 3.9 and 3.10
 2. Installs flake8, black, and pytest
