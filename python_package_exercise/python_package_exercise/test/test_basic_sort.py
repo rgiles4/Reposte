@@ -57,7 +57,7 @@ def test_quick(int_lists):
         sorted_list = int_list.copy()
         quick(sorted_list)
         assert is_sorted(sorted_list)
-    
+
 
 def test_insertion(int_lists):
     for int_list in int_lists:
