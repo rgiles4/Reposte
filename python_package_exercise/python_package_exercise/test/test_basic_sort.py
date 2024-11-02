@@ -54,8 +54,7 @@ def test_bubble(int_lists):
 
 def test_quick(int_lists):
     for int_list in int_lists:
-        sorted_list = int_list.copy()
-        quick(sorted_list)
+        sorted_list = quick(int_list.copy())
         assert is_sorted(sorted_list)
 
 
