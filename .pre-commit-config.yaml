@@ -9,7 +9,7 @@ repos:
         
       - id: detect-aws-credentials
 
-  - repo: https://github.com/psf/black-pre-commit-mirror
+  - repo: https://github.com/psf/black
     rev: 24.8.0
     hooks:
       - id:black
