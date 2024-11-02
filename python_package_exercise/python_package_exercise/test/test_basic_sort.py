@@ -20,6 +20,7 @@ import numpy as np
 import pytest
 from python_package_exercise.basic_sort_UNIQUE_SUFFIX.int_sort import (
     bubble,
+    quick,
     insertion,
 )
 
@@ -52,8 +53,11 @@ def test_bubble(int_lists):
 
 
 def test_quick(int_lists):
-    assert True
-
+    for int_list in int_lists:
+        sorted_list = int_list.copy()
+        quick(sorted_list)
+        assert is_sorted(sorted_list)
+    
 
 def test_insertion(int_lists):
     for int_list in int_lists:
