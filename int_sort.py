@@ -21,6 +21,7 @@ This module sorts lists of integers...
 """
 from typing import List
 
+
 def bubble(int_list: List[int]) -> None:
     """
     Will sort a list into smallest to largest integer using bubble sort
@@ -40,39 +41,42 @@ def bubble(int_list: List[int]) -> None:
 
 def quick(int_list):
     """
-    Will sort the input list smallest to largest by using quicksort recursively 
+    Will sort the input list smallest to largest
+    by using quicksort recursively
 
-    Args: 
-        int_list: The list to be sorted 
+    Args:
+        int_list: The list to be sorted
 
-    Returns: 
-        The function returns a part or the whole list sorted depending on the if statement
+    Returns:
+        The function returns a part or the whole list sorted,
+        depending on the if statement
     """
     n = len(int_list)
-    
+
     if n <= 1:
         return int_list
-    
-    else: 
+
+    else:
         split = int_list[0]
         left = [x for x in int_list[1:] if x < split]
         right = [x for x in int_list[1:] if x >= split]
         return quick(left) + [split] + quick(right)
-    
+
+
 def insertion(int_list):
     """
-        Will sort a list into smallest to largest integer using insertion sort
+    Will sort a list into smallest to largest integer using insertion sort
 
-        Args: 
-            int_list: The list that needs to be sorted
+    Args:
+        int_list: The list that needs to be sorted
 
-        Returns:
-            N/A: List is sorted in itself
+    Returns:
+        N/A: List is sorted in itself
     """
     for i in range(1, len(int_list)):
         key = int_list[i]
         j = i - 1
         while j >= 0 and key < int_list[j]:
             int_list[j + 1] = int_list[j]
-            j -=  1
+            j -= 1
         int_list[j + 1] = key

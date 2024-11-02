@@ -21,6 +21,7 @@ This module sorts lists of integers...
 """
 from typing import List
 
+
 def bubble(int_list: List[int]) -> None:
     """
     Will sort a list into smallest to largest integer using bubble sort
@@ -42,26 +43,24 @@ def quick(int_list):
     """
     qsort docstring
     """
-    n = len(int_list)
-    
     # Look at elements in array
-    #for i in range(n):
-        
+    # for i in range(n):
+
 
 def insertion(int_list):
     """
-        Will sort a list into smallest to largest integer using insertion sort
+    Will sort a list into smallest to largest integer using insertion sort
 
-        Args: 
-            int_list: The list that needs to be sorted
+    Args:
+        int_list: The list that needs to be sorted
 
-        Returns:
-            N/A: List is sorted in itself
+    Returns:
+        N/A: List is sorted in itself
     """
     for i in range(1, len(int_list)):
         key = int_list[i]
         j = i - 1
         while j >= 0 and key < int_list[j]:
             int_list[j + 1] = int_list[j]
-            j -=  1
+            j -= 1
         int_list[j + 1] = key
