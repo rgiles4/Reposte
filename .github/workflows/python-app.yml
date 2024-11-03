@@ -3,6 +3,7 @@
 # 2. Installs Python Dependences (v. 3.9 and 3.10)
 # 3. Lints Python files with flake8 and Black
 # 4. Runs tests using pytest
+# 5. Builds a python package
 
 name: Python application
 
