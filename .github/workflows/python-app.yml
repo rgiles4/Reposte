@@ -40,7 +40,7 @@ jobs:
         python -m pip install --upgrade pip
         python -m pip install --verbose flake8 black pytest
         python -m pip install --verbose -r python_package_exercise/python_package_exercise/requirements.txt
-        python -m pip install --verbose build twine
+        python -m pip install --verbose setuptools wheel
     #bash -c "if [ -f requirements.txt ]; then pip install --verbose -r requirements.txt; fi"
 
     # Check installed packages
@@ -52,5 +52,13 @@ jobs:
     - uses: pre-commit/action@v3.0.1
 
     # Build Package
-    - name: Build package
-      run: python -m build
+    - name: Build Package
+      working-directory: python_package_exercise
+      run: |
+        python setup.py sdist bdist_wheel
+
+    - name: Verify Package
+      working-directory: python_package_exercise
+      run: |
+        pip install dist/*.whl
+      
