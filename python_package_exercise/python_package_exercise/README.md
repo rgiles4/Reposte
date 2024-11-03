@@ -1,5 +1,5 @@
 # DevOps Exercise
-![Python Package Builder](https://github.com/rgiles4_/Reposte/actions/workflows/python-app.yml/badge.svg)
+[![Python application](https://github.com/rgiles4/Reposte/actions/workflows/python-app.yml/badge.svg)](https://github.com/rgiles4/Reposte/actions/workflows/python-app.yml)
 
 This repository creates Python package for sorting integer 
 lists using the DevOps software development approach. The
@@ -11,7 +11,6 @@ This repository utilizes a GitHub action to install dependencies,
 format, lint, test, and build the Python package on a push to main, and on pull requests.
 
 ### The Action
-
 1. Installs Python 3.9 and 3.10
 2. Installs flake8, black, and pytest
 3. Checks committed files size (files over 1000mb fail the test)
