@@ -53,7 +53,7 @@ jobs:
 
     # Build Package
     - name: Build Package
-      working-directory: python_package_exercise
+      working-directory: python_package_exercise/python_package_exercise
       run: |
         python -m build
       
