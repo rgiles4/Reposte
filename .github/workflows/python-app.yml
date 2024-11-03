@@ -3,6 +3,7 @@
 # 2. Installs Python Dependences (v. 3.9 and 3.10)
 # 3. Lints Python files with flake8 and Black
 # 4. Runs tests using pytest
+# 5. Builds a python package
 
 name: Python application
 
@@ -27,43 +28,32 @@ jobs:
 
     steps:
     - uses: actions/checkout@v4
+
+    # Setup Python Versions
     - name: Set up Python ${{ matrix.python-version }}
       uses: actions/setup-python@v3
       with:
         python-version: ${{ matrix.python-version }} # References Python Versions
+
+    # Install Necessary Dependencies
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
-        python -m pip install --verbose flake8 black pytest
+        python -m pip install --verbose flake8 black pytest build
         python -m pip install --verbose -r python_package_exercise/python_package_exercise/requirements.txt
     #bash -c "if [ -f requirements.txt ]; then pip install --verbose -r requirements.txt; fi"
-        
-    #Check installed packages
+
+    # Check installed packages
     - name: List installed packages
       run: |
         pip list  
 
-        
-    - name: Lint with flake8
-      run: |
-        # stop the build if there are Python syntax errors or undefined names
-        flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
-        # exit-zero treats all errors as warnings. The GitHub editor is 127 chars wide
-        flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
+    # Runs Black, Flake8, and Pytest
+    - uses: pre-commit/action@v3.0.1
 
-    # Implementation found at https://black.readthedocs.io/en/stable/integrations/github_actions.html
-    - name: Lint with Black
+    # Build Package
+    - name: Build Package
+      working-directory: python_package_exercise/python_package_exercise
       run: |
-         black --check . || true
-      # uses: psf/black@stable
-      # with:
-      #   options: "--check --verbose"
-      #   src: "./python_package_exercise/python_package_exercise"
-      #   version: "~= 22.0"
-    
-    - name: Test with pytest
-      env:
-        PYTHONPATH: "${{ github.workspace }}/python_package_exercise"
-      run: |
-        pytest python_package_exercise/python_package_exercise/test/
-
+        python -m build
+      
