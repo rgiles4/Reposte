@@ -21,7 +21,7 @@ def update_frame():
             print("Error: Couldn't receive frame (stream end?). Exiting...")
             return
 
-        # Convert to RGB for displaying in tkinter and for consistent saving
+        # Convert to RGB for displaying in tkinter and render frame
         frame_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
         img = Image.fromarray(frame_rgb)
         imgtk = ImageTk.PhotoImage(image=img)
@@ -29,7 +29,7 @@ def update_frame():
         video_feed.imgtk = imgtk
         video_feed.configure(image=imgtk)
 
-        # Append the RGB frame for consistency with imageio
+        # Append the RGB frame to the buffer
         buffer.append(frame_rgb)
         if len(buffer) > max_frames:
             buffer.pop(0)
@@ -40,6 +40,7 @@ def update_frame():
 def play_video():
     global cap, is_recording, buffer
 
+    # Open webcam
     cap = cv2.VideoCapture(0)
     if not cap.isOpened():
         print("Error: Could not open webcam.")
@@ -54,10 +55,11 @@ def play_video():
 def stop_video():
     global is_recording, cap
 
+    # Clear cap when stop is hit
     is_recording = False
     if cap:
         cap.release()
-        cap = None  # Clear cap to ensure it's reinitialized on restart
+        cap = None
 
     video_feed.configure(image="")
     print("Recording stopped.")
@@ -72,7 +74,7 @@ def replay_video():
     # Save video with specified FPS and color adjustment
     with imageio.get_writer(video_path, fps=fps) as writer:
         for frame in buffer:
-            writer.append_data(frame)  # buffer is already in RGB format
+            writer.append_data(frame)
 
     print("Replay saved at:", video_path)
 
@@ -80,6 +82,7 @@ def replay_video():
 def main():
     global video_feed, window
 
+    # Set up GUI
     ctk.set_appearance_mode("dark")
     window = ctk.CTk()
     window.geometry("800x600")
@@ -89,6 +92,8 @@ def main():
     play_button = ctk.CTkButton(
         window,
         text="Play",
+        text_color="black",
+        font=("tahoma", 12, "bold"),
         width=120,
         height=40,
         command=play_video,
@@ -98,15 +103,20 @@ def main():
     stop_button = ctk.CTkButton(
         window,
         text="Stop",
+        text_color="black",
+        font=("tahoma", 12, "bold"),
         width=120,
         height=40,
         command=stop_video,
         fg_color="indianred",
         hover_color="maroon",
     )
+
     replay_button = ctk.CTkButton(
         window,
         text="Replay",
+        text_color="black",
+        font=("tahoma", 12, "bold"),
         width=120,
         height=40,
         command=replay_video,
