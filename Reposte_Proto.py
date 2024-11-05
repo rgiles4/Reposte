@@ -10,6 +10,7 @@ is_recording = False
 fps = 30
 max_frames = 4 * fps
 buffer = []
+recording_num = 0
 
 
 def update_frame():
@@ -66,10 +67,10 @@ def stop_video():
 
 
 def replay_video():
-    global buffer
+    global buffer, recording_num
 
     # Ensure the video path is writable and create an output file
-    video_path = os.path.join(os.getcwd(), "Video-Output.mp4")
+    video_path = os.path.join(os.getcwd(), f"Video-Output{recording_num}.mp4")
 
     # Save video with specified FPS and color adjustment
     with imageio.get_writer(video_path, fps=fps) as writer:
@@ -77,6 +78,41 @@ def replay_video():
             writer.append_data(frame)
 
     print("Replay saved at:", video_path)
+    recording_num += 1
+    play_replay(video_path)
+
+
+def play_replay(video_path):
+    # Create a new window for playback
+    replay_window = ctk.CTkToplevel(window)
+    replay_window.geometry("800x600")
+    replay_window.title(f"Video Replay: {video_path}")
+    replay_window.attributes("-topmost", True)
+
+    video_feed_replay = ctk.CTkLabel(replay_window, text="", fg_color="black")
+    video_feed_replay.pack(fill="both", expand=True)
+
+    # Open the saved video
+    cap_replay = cv2.VideoCapture(video_path)
+
+    def update_replay_frame():
+        ret, frame = cap_replay.read()
+        if not ret:
+            print("Replay ended.")
+            cap_replay.release()
+            replay_window.destroy()
+            return
+
+        frame_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+        img = Image.fromarray(frame_rgb)
+        imgtk = ImageTk.PhotoImage(image=img)
+
+        video_feed_replay.imgtk = imgtk
+        video_feed_replay.configure(image=imgtk)
+
+        video_feed_replay.after(int(1000 / fps), update_replay_frame)
+
+    update_replay_frame()
 
 
 def main():
