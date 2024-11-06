@@ -1,5 +1,6 @@
 import cv2
 from PIL import Image, ImageTk
+from customtkinter import CTkImage
 import customtkinter as ctk
 import os
 import imageio
@@ -25,7 +26,7 @@ def update_frame():
         # Convert to RGB for displaying in tkinter and render frame
         frame_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
         img = Image.fromarray(frame_rgb)
-        imgtk = ImageTk.PhotoImage(image=img)
+        imgtk = CTkImage(dark_image=img, size=(800, 600))
 
         video_feed.imgtk = imgtk
         video_feed.configure(image=imgtk)
@@ -66,7 +67,7 @@ def stop_video():
     print("Recording stopped.")
 
 
-def replay_video():
+def save_replay():
     global buffer, recording_num
 
     # Ensure the video path is writable and create an output file
@@ -89,8 +90,13 @@ def play_replay(video_path):
     replay_window.title(f"Video Replay: {video_path}")
     replay_window.attributes("-topmost", True)
 
+    replay_window.grid_rowconfigure(1, weight=1)
+    replay_window.grid_columnconfigure(0, weight=1)
+
     video_feed_replay = ctk.CTkLabel(replay_window, text="", fg_color="black")
-    video_feed_replay.pack(fill="both", expand=True)
+    video_feed_replay.grid(
+        row=0, column=0, columnspan=3, sticky="nsew", padx=10, pady=(10, 20)
+    )
 
     # Open the saved video
     cap_replay = cv2.VideoCapture(video_path)
@@ -105,7 +111,7 @@ def play_replay(video_path):
 
         frame_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
         img = Image.fromarray(frame_rgb)
-        imgtk = ImageTk.PhotoImage(image=img)
+        imgtk = CTkImage(dark_image=img, size=(frame.shape[1], frame.shape[0]))
 
         video_feed_replay.imgtk = imgtk
         video_feed_replay.configure(image=imgtk)
@@ -155,7 +161,7 @@ def main():
         font=("tahoma", 12, "bold"),
         width=120,
         height=40,
-        command=replay_video,
+        command=save_replay,
         fg_color="coral",
         hover_color="orangered",
     )
