@@ -46,7 +46,7 @@ class VideoRecorderApp:
             columnspan=3,
             sticky="nsew",
             padx=10,
-            pady=(0, 5),
+            pady=(0, 10),
         )
 
         # Side frame for buttons
