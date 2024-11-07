@@ -34,7 +34,12 @@ class VideoRecorderApp:
             self.window, height=(self.height / 16), width=(self.width)
         )
         self.top_frame.grid(
-            row=0, column=1, columnspan=3, sticky="new", pady=(10, 10), padx=(10, 10)
+            row=0,
+            column=1,
+            columnspan=3,
+            sticky="new",
+            pady=(10, 10),
+            padx=(10, 10),
         )
 
         # Video feed display area
@@ -51,7 +56,10 @@ class VideoRecorderApp:
 
         # Side frame for buttons
         self.side_frame = ctk.CTkFrame(
-            self.window, width=(self.width / 4), height=self.height, corner_radius=5
+            self.window,
+            width=(self.width / 4),
+            height=self.height,
+            corner_radius=5,
         )
         self.side_frame.grid(
             row=0, column=0, rowspan=3, sticky="ns", pady=10, padx=(10, 0)
@@ -95,7 +103,9 @@ class VideoRecorderApp:
         # Layout configuration for buttons
         play_button.grid(row=0, column=0, padx=10, pady=(10, 0), sticky="nw")
         stop_button.grid(row=1, column=0, padx=10, pady=(10, 0), sticky="nw")
-        replay_button.grid(row=2, column=0, padx=10, pady=(10, 10), sticky="nw")
+        replay_button.grid(
+            row=2, column=0, padx=10, pady=(10, 10), sticky="nw"
+        )
 
         self.window.mainloop()
 
@@ -103,7 +113,9 @@ class VideoRecorderApp:
         if self.is_recording:
             ret, frame = self.cap.read()
             if not ret:
-                print("Error: Couldn't receive frame (stream end?). Exiting...")
+                print(
+                    "Error: Couldn't receive frame (stream end?). Exiting..."
+                )
                 return
 
             # Convert frame to RGB and display in tkinter
@@ -141,7 +153,9 @@ class VideoRecorderApp:
         print("Recording stopped.")
 
     def Save_Replay(self):
-        video_path = os.path.join(os.getcwd(), f"Video-Output{self.recording_num}.mp4")
+        video_path = os.path.join(
+            os.getcwd(), f"Video-Output{self.recording_num}.mp4"
+        )
 
         with imageio.get_writer(video_path, fps=self.fps) as writer:
             for frame in self.buffer:
@@ -160,9 +174,16 @@ class VideoRecorderApp:
         replay_window.grid_rowconfigure(1, weight=1)
         replay_window.grid_columnconfigure(0, weight=1)
 
-        video_feed_replay = ctk.CTkLabel(replay_window, text="", fg_color="black")
+        video_feed_replay = ctk.CTkLabel(
+            replay_window, text="", fg_color="black"
+        )
         video_feed_replay.grid(
-            row=0, column=0, columnspan=3, sticky="nsew", padx=10, pady=(10, 20)
+            row=0,
+            column=0,
+            columnspan=3,
+            sticky="nsew",
+            padx=10,
+            pady=(10, 20),
         )
 
         cap_replay = cv2.VideoCapture(video_path)
