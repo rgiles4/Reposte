@@ -18,9 +18,9 @@ class VideoRecorderApp:
         self.recording_num = 0
         self.video_feed = None
         self.window = None
-        self.setup_gui()
+        self.Setup_GUI()
 
-    def setup_gui(self):
+    def Setup_GUI(self):
         ctk.set_appearance_mode("dark")
         self.window = ctk.CTk()
         self.window.geometry(f"{self.width}x{self.height}")
@@ -63,7 +63,7 @@ class VideoRecorderApp:
             font=("tahoma", 12, "bold"),
             width=120,
             height=40,
-            command=self.play_video,
+            command=self.Play_Video,
             fg_color="darkseagreen",
             hover_color="darkgreen",
         )
@@ -74,7 +74,7 @@ class VideoRecorderApp:
             font=("tahoma", 12, "bold"),
             width=120,
             height=40,
-            command=self.stop_video,
+            command=self.Stop_Video,
             fg_color="indianred",
             hover_color="maroon",
         )
@@ -85,7 +85,7 @@ class VideoRecorderApp:
             font=("tahoma", 12, "bold"),
             width=120,
             height=40,
-            command=self.save_replay,
+            command=self.Save_Replay,
             fg_color="coral",
             hover_color="orangered",
         )
@@ -97,7 +97,7 @@ class VideoRecorderApp:
 
         self.window.mainloop()
 
-    def update_frame(self):
+    def Update_Frame(self):
         if self.is_recording:
             ret, frame = self.cap.read()
             if not ret:
@@ -116,9 +116,9 @@ class VideoRecorderApp:
             if len(self.buffer) > self.max_frames:
                 self.buffer.pop(0)
 
-            self.video_feed.after(int(1000 / self.fps), self.update_frame)
+            self.video_feed.after(int(1000 / self.fps), self.Update_Frame)
 
-    def play_video(self):
+    def Play_Video(self):
         self.cap = cv2.VideoCapture(0)
         if not self.cap.isOpened():
             print("Error: Could not open webcam.")
@@ -127,9 +127,9 @@ class VideoRecorderApp:
         self.is_recording = True
         self.buffer.clear()
         print("Recording started.")
-        self.update_frame()
+        self.Update_Frame()
 
-    def stop_video(self):
+    def Stop_Video(self):
         self.is_recording = False
         if self.cap:
             self.cap.release()
@@ -138,7 +138,7 @@ class VideoRecorderApp:
         self.video_feed.configure(image="")
         print("Recording stopped.")
 
-    def save_replay(self):
+    def Save_Replay(self):
         video_path = os.path.join(os.getcwd(), f"Video-Output{self.recording_num}.mp4")
 
         with imageio.get_writer(video_path, fps=self.fps) as writer:
@@ -147,9 +147,9 @@ class VideoRecorderApp:
 
         print("Replay saved at:", video_path)
         self.recording_num += 1
-        self.play_replay(video_path)
+        self.Play_Replay(video_path)
 
-    def play_replay(self, video_path):
+    def Play_Replay(self, video_path):
         replay_window = ctk.CTkToplevel(self.window)
         replay_window.geometry(f"{self.width}x{self.height}")
         replay_window.title(f"Video Replay: {video_path}")
@@ -165,7 +165,7 @@ class VideoRecorderApp:
 
         cap_replay = cv2.VideoCapture(video_path)
 
-        def update_replay_frame():
+        def Update_Replay_Frame():
             ret, frame = cap_replay.read()
             if not ret:
                 print("Replay ended.")
@@ -180,9 +180,12 @@ class VideoRecorderApp:
             video_feed_replay.imgtk = imgtk
             video_feed_replay.configure(image=imgtk)
 
-            video_feed_replay.after(int(1000 / self.fps), update_replay_frame)
+            video_feed_replay.after(int(1000 / self.fps), Update_Replay_Frame)
 
-        update_replay_frame()
+        Update_Replay_Frame()
+
+    def Save_File_Location(self):
+        return
 
 
 if __name__ == "__main__":
