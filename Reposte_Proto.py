@@ -34,7 +34,7 @@ class VideoRecorderApp:
             self.window, height=(self.height / 16), width=(self.width)
         )
         self.top_frame.grid(
-            row=0, column=1, columnspan=3, sticky="n", pady=(5, 10), padx=(10, 10)
+            row=0, column=1, columnspan=3, sticky="new", pady=(10, 10), padx=(10, 10)
         )
 
         # Video feed display area
@@ -46,14 +46,16 @@ class VideoRecorderApp:
             columnspan=3,
             sticky="nsew",
             padx=10,
-            pady=(0, 10),
+            pady=(0, 5),
         )
 
         # Side frame for buttons
         self.side_frame = ctk.CTkFrame(
             self.window, width=(self.width / 4), height=self.height, corner_radius=5
         )
-        self.side_frame.grid(row=0, column=0, rowspan=3, sticky="ns", pady=5)
+        self.side_frame.grid(
+            row=0, column=0, rowspan=3, sticky="ns", pady=10, padx=(10, 0)
+        )
 
         # Control buttons
         play_button = ctk.CTkButton(
@@ -135,7 +137,7 @@ class VideoRecorderApp:
             self.cap.release()
             self.cap = None
 
-        self.video_feed.configure(image="")
+        self.video_feed.configure(image=None, text="")
         print("Recording stopped.")
 
     def Save_Replay(self):
