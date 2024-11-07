@@ -8,6 +8,8 @@ import imageio
 
 class VideoRecorderApp:
     def __init__(self, fps=30):
+        self.width = 800
+        self.height = 600
         self.cap = None
         self.is_recording = False
         self.fps = fps
@@ -21,18 +23,41 @@ class VideoRecorderApp:
     def setup_gui(self):
         ctk.set_appearance_mode("dark")
         self.window = ctk.CTk()
-        self.window.geometry("800x600")
+        self.window.geometry(f"{self.width}x{self.height}")
         self.window.title("Reposte (Prototype)")
+
+        self.window.grid_rowconfigure(1, weight=1)
+        self.window.grid_columnconfigure((1, 2, 3), weight=1)
+
+        # Top Frame for save location
+        self.top_frame = ctk.CTkFrame(
+            self.window, height=(self.height / 16), width=(self.width)
+        )
+        self.top_frame.grid(
+            row=0, column=1, columnspan=3, sticky="n", pady=(5, 10), padx=(10, 10)
+        )
 
         # Video feed display area
         self.video_feed = ctk.CTkLabel(self.window, text="", fg_color="black")
         self.video_feed.grid(
-            row=1, column=0, columnspan=3, sticky="nsew", padx=10, pady=(10, 20)
+            row=1,
+            column=1,
+            rowspan=2,
+            columnspan=3,
+            sticky="nsew",
+            padx=10,
+            pady=(0, 10),
         )
+
+        # Side frame for buttons
+        self.side_frame = ctk.CTkFrame(
+            self.window, width=(self.width / 4), height=self.height, corner_radius=5
+        )
+        self.side_frame.grid(row=0, column=0, rowspan=3, sticky="ns", pady=5)
 
         # Control buttons
         play_button = ctk.CTkButton(
-            self.window,
+            self.side_frame,
             text="Play",
             text_color="black",
             font=("tahoma", 12, "bold"),
@@ -43,7 +68,7 @@ class VideoRecorderApp:
             hover_color="darkgreen",
         )
         stop_button = ctk.CTkButton(
-            self.window,
+            self.side_frame,
             text="Stop",
             text_color="black",
             font=("tahoma", 12, "bold"),
@@ -54,7 +79,7 @@ class VideoRecorderApp:
             hover_color="maroon",
         )
         replay_button = ctk.CTkButton(
-            self.window,
+            self.side_frame,
             text="Replay",
             text_color="black",
             font=("tahoma", 12, "bold"),
@@ -65,12 +90,10 @@ class VideoRecorderApp:
             hover_color="orangered",
         )
 
-        # Layout configuration
-        self.window.grid_rowconfigure(1, weight=1)
-        self.window.grid_columnconfigure((0, 1, 2), weight=1)
-        play_button.grid(row=2, column=0, padx=10, pady=(5, 20), sticky="s")
-        stop_button.grid(row=2, column=1, padx=10, pady=(5, 20), sticky="s")
-        replay_button.grid(row=2, column=2, padx=10, pady=(5, 20), sticky="s")
+        # Layout configuration for buttons
+        play_button.grid(row=0, column=0, padx=10, pady=(10, 0), sticky="nw")
+        stop_button.grid(row=1, column=0, padx=10, pady=(10, 0), sticky="nw")
+        replay_button.grid(row=2, column=0, padx=10, pady=(10, 10), sticky="nw")
 
         self.window.mainloop()
 
@@ -84,7 +107,7 @@ class VideoRecorderApp:
             # Convert frame to RGB and display in tkinter
             frame_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
             img = Image.fromarray(frame_rgb)
-            imgtk = CTkImage(dark_image=img, size=(800, 600))
+            imgtk = CTkImage(dark_image=img, size=(self.width, self.height))
             self.video_feed.imgtk = imgtk
             self.video_feed.configure(image=imgtk)
 
@@ -128,7 +151,7 @@ class VideoRecorderApp:
 
     def play_replay(self, video_path):
         replay_window = ctk.CTkToplevel(self.window)
-        replay_window.geometry("800x600")
+        replay_window.geometry(f"{self.width}x{self.height}")
         replay_window.title(f"Video Replay: {video_path}")
         replay_window.attributes("-topmost", True)
 
@@ -152,7 +175,7 @@ class VideoRecorderApp:
 
             frame_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
             img = Image.fromarray(frame_rgb)
-            imgtk = CTkImage(dark_image=img, size=(frame.shape[1], frame.shape[0]))
+            imgtk = CTkImage(dark_image=img, size=(self.width, self.height))
 
             video_feed_replay.imgtk = imgtk
             video_feed_replay.configure(image=imgtk)
