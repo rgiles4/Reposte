@@ -1,0 +1,25 @@
+[build-system]
+requires = ["setuptools>=61.0", 
+            "wheel"
+]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "basic_sort_UNIQUE_SUFFIX"
+version = "0.0.1"
+authors = [{ name="Author1", email="author1@maine.edu" },
+           { name="Author2", email="author2@maine.edu" },
+]
+description = "An exercise in the capstone course"
+readme = "README.md"
+requires-python = ">=3.9.0"
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: Apache 2.0",
+    "Operating System :: OS Independent",
+]
+
+[project.urls]
+"Bug Tracker" = "https://github.com/pypa/python_package_exercise/issues"
+
+
