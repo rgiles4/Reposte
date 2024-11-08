@@ -7,7 +7,9 @@ import imageio
 
 
 class VideoRecorderApp:
-    def __init__(self, fps=30):
+    # Set fps to match camera
+    # Initialize variables
+    def __init__(self, fps=60):
         self.width = 800
         self.height = 600
         self.cap = None
@@ -37,7 +39,7 @@ class VideoRecorderApp:
             row=0,
             column=1,
             columnspan=3,
-            sticky="new",
+            sticky="nsew",
             pady=(10, 10),
             padx=(10, 10),
         )
@@ -66,6 +68,7 @@ class VideoRecorderApp:
         )
 
         # Control buttons
+        # TODO: FPS button to match camera fps
         play_button = ctk.CTkButton(
             self.side_frame,
             text="Play",
@@ -103,9 +106,7 @@ class VideoRecorderApp:
         # Layout configuration for buttons
         play_button.grid(row=0, column=0, padx=10, pady=(10, 0), sticky="nw")
         stop_button.grid(row=1, column=0, padx=10, pady=(10, 0), sticky="nw")
-        replay_button.grid(
-            row=2, column=0, padx=10, pady=(10, 10), sticky="nw"
-        )
+        replay_button.grid(row=2, column=0, padx=10, pady=(10, 10), sticky="nw")
 
         self.window.mainloop()
 
@@ -113,9 +114,7 @@ class VideoRecorderApp:
         if self.is_recording:
             ret, frame = self.cap.read()
             if not ret:
-                print(
-                    "Error: Couldn't receive frame (stream end?). Exiting..."
-                )
+                print("Error: Couldn't receive frame (stream end?). Exiting...")
                 return
 
             # Convert frame to RGB and display in tkinter
@@ -149,13 +148,11 @@ class VideoRecorderApp:
             self.cap.release()
             self.cap = None
 
-        self.video_feed.configure(image=None, text="")
+        self.video_feed.configure(image="", text="")
         print("Recording stopped.")
 
     def Save_Replay(self):
-        video_path = os.path.join(
-            os.getcwd(), f"Video-Output{self.recording_num}.mp4"
-        )
+        video_path = os.path.join(os.getcwd(), f"Video-Output{self.recording_num}.mp4")
 
         with imageio.get_writer(video_path, fps=self.fps) as writer:
             for frame in self.buffer:
@@ -166,24 +163,34 @@ class VideoRecorderApp:
         self.Play_Replay(video_path)
 
     def Play_Replay(self, video_path):
+        # Create the replay window GUI
         replay_window = ctk.CTkToplevel(self.window)
         replay_window.geometry(f"{self.width}x{self.height}")
         replay_window.title(f"Video Replay: {video_path}")
         replay_window.attributes("-topmost", True)
 
-        replay_window.grid_rowconfigure(1, weight=1)
+        replay_window.grid_rowconfigure(0, weight=1)
         replay_window.grid_columnconfigure(0, weight=1)
 
-        video_feed_replay = ctk.CTkLabel(
-            replay_window, text="", fg_color="black"
+        self.bottom_frame = ctk.CTkFrame(
+            replay_window, height=(self.height / 8), width=self.width
         )
+
+        self.bottom_frame.grid(
+            row=1,
+            column=0,
+            sticky="nsew",
+            padx=10,
+            pady=10,
+        )
+
+        video_feed_replay = ctk.CTkLabel(replay_window, text="", fg_color="black")
         video_feed_replay.grid(
             row=0,
             column=0,
-            columnspan=3,
             sticky="nsew",
             padx=10,
-            pady=(10, 20),
+            pady=10,
         )
 
         cap_replay = cv2.VideoCapture(video_path)
@@ -212,4 +219,4 @@ class VideoRecorderApp:
 
 
 if __name__ == "__main__":
-    app = VideoRecorderApp(fps=30)
+    app = VideoRecorderApp(fps=60)
