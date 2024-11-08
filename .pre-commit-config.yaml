@@ -13,7 +13,7 @@ repos:
     rev: 24.8.0
     hooks:
       - id: black
-      - args: ["--line-length=78"] # Limit line length to be the same as flake8
+        args: ["--line-length=78"] # Limit line length to be the same as flake8
 
   - repo: https://github.com/pycqa/flake8
     rev: 7.1.1
