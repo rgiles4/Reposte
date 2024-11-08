@@ -106,7 +106,9 @@ class VideoRecorderApp:
         # Layout configuration for buttons
         play_button.grid(row=0, column=0, padx=10, pady=(10, 0), sticky="nw")
         stop_button.grid(row=1, column=0, padx=10, pady=(10, 0), sticky="nw")
-        replay_button.grid(row=2, column=0, padx=10, pady=(10, 10), sticky="nw")
+        replay_button.grid(
+            row=2, column=0, padx=10, pady=(10, 10), sticky="nw"
+        )
 
         self.window.mainloop()
 
@@ -114,7 +116,9 @@ class VideoRecorderApp:
         if self.is_recording:
             ret, frame = self.cap.read()
             if not ret:
-                print("Error: Couldn't receive frame (stream end?). Exiting...")
+                print(
+                    "Error: Couldn't receive frame (stream end?). Exiting..."
+                )
                 return
 
             # Convert frame to RGB and display in tkinter
@@ -152,7 +156,9 @@ class VideoRecorderApp:
         print("Recording stopped.")
 
     def Save_Replay(self):
-        video_path = os.path.join(os.getcwd(), f"Video-Output{self.recording_num}.mp4")
+        video_path = os.path.join(
+            os.getcwd(), f"Video-Output{self.recording_num}.mp4"
+        )
 
         with imageio.get_writer(video_path, fps=self.fps) as writer:
             for frame in self.buffer:
@@ -184,7 +190,9 @@ class VideoRecorderApp:
             pady=10,
         )
 
-        video_feed_replay = ctk.CTkLabel(replay_window, text="", fg_color="black")
+        video_feed_replay = ctk.CTkLabel(
+            replay_window, text="", fg_color="black"
+        )
         video_feed_replay.grid(
             row=0,
             column=0,
