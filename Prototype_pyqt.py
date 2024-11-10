@@ -87,43 +87,43 @@ class MainWindow(QMainWindow):
 
     def StylingGUI(self):
 
-        self.app_window_widget.setStyleSheet("""background-color: gray;""")
+        self.app_window_widget.setStyleSheet("""background-color: #222222;""")
 
         # Side frame
         self.side_frame.setStyleSheet(
-            """ QFrame { background-color: darkgray;
+            """ QFrame { background-color: #636363;
             border: 1px solid black;
             border-radius: 10px;}"""
         )
 
         # Top frame
         self.top_frame.setStyleSheet(
-            """ QFrame { background-color: darkgray;
+            """ QFrame { background-color: #636363;
             border: 1px solid black;
             border-radius: 10px;}"""
         )
 
         # Video frame
         self.video_frame.setStyleSheet(
-            """ QLabel { background-color: darkgray;
+            """ QLabel { background-color: #636363;
             border-radius: 10px;}"""
         )
 
         # Button Styling
         self.play_button.setStyleSheet(
-            """ QPushButton { background-color: green;}"""
+            """ QPushButton { background-color: #2e6f40;}"""
         )
 
         self.stop_button.setStyleSheet(
-            """ QPushButton { background-color: red;}"""
+            """ QPushButton { background-color: #942222;}"""
         )
 
         self.replay_button.setStyleSheet(
-            """ QPushButton { background-color: orange;}"""
+            """ QPushButton { background-color: #be5103;}"""
         )
 
         self.save_file_button.setStyleSheet(
-            """ QPushButton { background-color: slategray;}"""
+            """ QPushButton { background-color: #6d8196;}"""
         )
 
 
