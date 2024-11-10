@@ -15,6 +15,7 @@ from PyQt6.QtWidgets import (
 from PyQt6.QtCore import Qt, QTimer
 from PyQt6.QtGui import QImage, QPixmap
 from PIL import Image
+
 import imageio
 
 
@@ -221,6 +222,7 @@ class MainWindow(QMainWindow):
 
     def Play_Replay(self, video_path):
         # Create the replay window GUI
+        # TODO: make replay window pretty
         replay_window = QWidget()
         replay_window.setWindowTitle(f"Video Replay: {video_path}")
         replay_window.setGeometry(100, 100, self.width, self.height)
@@ -229,12 +231,12 @@ class MainWindow(QMainWindow):
         # Layout for the replay window
         replay_layout = QVBoxLayout(replay_window)
 
-        # Create the video frame (a QLabel to display the video)
+        # Create QLabel to render video frame
         video_feed_replay = QLabel("Video Feed")
         video_feed_replay.setAlignment(Qt.AlignmentFlag.AlignCenter)
         replay_layout.addWidget(video_feed_replay)
 
-        # Create a bottom frame (could be used for buttons, controls, etc.)
+        # Create a bottom frame
         bottom_frame = QFrame()
         bottom_frame.setFixedHeight(self.height // 2)
         replay_layout.addWidget(bottom_frame)
@@ -265,7 +267,7 @@ class MainWindow(QMainWindow):
                 QImage.Format.Format_RGB888,
             )
 
-            # Scale the QImage to fit the window
+            # Scale the QImage to fit the window w/ specific aspect ratios
             scaled_qt_frame = qt_frame.scaled(
                 self.width, self.height, Qt.AspectRatioMode.KeepAspectRatio
             )
@@ -276,10 +278,10 @@ class MainWindow(QMainWindow):
             # Update every frame 1000/fps milliseconds
             QTimer.singleShot(int(1000 / self.fps), Update_Replay_Frame)
 
-        # Start the frame updates
+        # Update frames
         Update_Replay_Frame()
 
-        # Show the replay window
+        # render replay window
         replay_window.show()
 
 
