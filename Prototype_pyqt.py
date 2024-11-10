@@ -1,4 +1,7 @@
 import sys
+import cv2
+import os
+import numpy as np
 from PyQt6.QtWidgets import (
     QApplication,
     QMainWindow,
@@ -9,7 +12,10 @@ from PyQt6.QtWidgets import (
     QFrame,
     QPushButton,
 )
-from PyQt6.QtCore import Qt
+from PyQt6.QtCore import Qt, QTimer
+from PyQt6.QtGui import QImage, QPixmap
+from PIL import Image
+import imageio
 
 
 class MainWindow(QMainWindow):
@@ -22,11 +28,21 @@ class MainWindow(QMainWindow):
         self.sf_button_width = 80
         self.tf_button_width = 80
 
-        self.SetupGUI()
+        self.width = 800
+        self.height = 600
+        self.fps = 60
+        self.buffer = []
+        self.max_frames = 4 * self.fps
+        self.recording_num = 0
 
-    def SetupGUI(self):
+        self.Setup_GUI()
+
+        self.is_recording = False
+        self.cap = None
+
+    def Setup_GUI(self):
         self.setWindowTitle("RePoste Prototype (PyQt6)")
-        self.setGeometry(100, 100, 800, 600)
+        self.setGeometry(100, 100, self.width, self.height)
 
         # app window
         self.app_window_widget = QWidget()
@@ -50,8 +66,10 @@ class MainWindow(QMainWindow):
         self.side_frame_layout.addWidget(self.stop_button)
         self.side_frame_layout.addWidget(self.replay_button)
 
-        # Align layout to the top of the side frame
+        # Align button layout to the top of the side frame
         self.side_frame_layout.setAlignment(Qt.AlignmentFlag.AlignTop)
+
+        # apply side frame to app window
         self.app_window_layout.addWidget(self.side_frame)
 
         # Top and video frame independent of side frame
@@ -71,22 +89,26 @@ class MainWindow(QMainWindow):
         )
 
         # Video Frame
-        self.video_frame = QLabel("Video Feed")
-        self.video_frame.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.video_feed = QLabel("Video Feed")
+        self.video_feed.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.main_window_layout.setContentsMargins(0, 0, 0, 0)
         self.main_window_layout.addWidget(self.top_frame)
-        self.main_window_layout.addWidget(self.video_frame)
+        self.main_window_layout.addWidget(self.video_feed)
 
         # Apply and format widgets to the app
         self.app_window_layout.addWidget(self.main_window_widget)
         self.app_window_widget.setLayout(self.app_window_layout)
 
-        self.StylingGUI()
+        self.Styling_GUI()
 
         # renders widgets to screen
         self.setCentralWidget(self.app_window_widget)
 
-    def StylingGUI(self):
+        self.play_button.clicked.connect(self.Play_Video)
+        self.stop_button.clicked.connect(self.Stop_Video)
+        self.replay_button.clicked.connect(self.Save_Replay)
 
+    def Styling_GUI(self):
         self.app_window_widget.setStyleSheet("""background-color: #222222;""")
 
         # Side frame
@@ -104,7 +126,7 @@ class MainWindow(QMainWindow):
         )
 
         # Video frame
-        self.video_frame.setStyleSheet(
+        self.video_feed.setStyleSheet(
             """ QLabel { background-color: #636363;
             border-radius: 10px;}"""
         )
@@ -125,6 +147,140 @@ class MainWindow(QMainWindow):
         self.save_file_button.setStyleSheet(
             """ QPushButton { background-color: #6d8196;}"""
         )
+
+    def Update_Frame(self):
+        if self.is_recording:
+            ret, frame = self.cap.read()
+            if not ret:
+                print(
+                    "Error: Couldn't receive frame (stream end?). Exiting..."
+                )
+                return
+
+            frame_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+
+            # Convert frame to QImage to update inside the QLabel
+            h, w, ch = frame_rgb.shape
+            bytes_per_line = ch * w
+            qt_frame = QImage(
+                frame_rgb.data,
+                w,
+                h,
+                bytes_per_line,
+                QImage.Format.Format_RGB888,
+            )
+
+            # scaled QImage frames
+            scaled_qt_frame = qt_frame.scaled(
+                self.video_feed.size(), Qt.AspectRatioMode.KeepAspectRatio
+            )
+
+            # Set the scaled qt frame to the label
+            self.video_feed.setPixmap(QPixmap.fromImage(scaled_qt_frame))
+
+            # Add frame to buffer
+            self.buffer.append(frame_rgb)
+            if len(self.buffer) > self.max_frames:
+                self.buffer.pop(0)
+
+            # Update frame every 1000/fps milliseconds
+            QTimer.singleShot(int(1000 / self.fps), self.Update_Frame)
+
+    def Play_Video(self):
+        self.cap = cv2.VideoCapture(0)
+        if not self.cap.isOpened():
+            print("Error: Could not open webcam.")
+            return
+
+        self.is_recording = True
+        self.buffer.clear()
+        print("Recording started.")
+        self.Update_Frame()
+
+    def Stop_Video(self):
+        self.is_recording = False
+        if self.cap:
+            self.cap.release()
+            self.cap = None
+
+        self.video_feed.clear()
+        print("Recording stopped.")
+
+    def Save_Replay(self):
+        video_path = os.path.join(
+            os.getcwd(), f"Video-Output{self.recording_num}.mp4"
+        )
+
+        with imageio.get_writer(video_path, fps=self.fps) as writer:
+            for frame in self.buffer:
+                writer.append_data(frame)
+
+        print("Replay saved at:", video_path)
+        self.recording_num += 1
+        self.Play_Replay(video_path)
+
+    def Play_Replay(self, video_path):
+        # Create the replay window GUI
+        replay_window = QWidget()
+        replay_window.setWindowTitle(f"Video Replay: {video_path}")
+        replay_window.setGeometry(100, 100, self.width, self.height)
+        replay_window.setWindowFlag(Qt.WindowType.WindowStaysOnTopHint)
+
+        # Layout for the replay window
+        replay_layout = QVBoxLayout(replay_window)
+
+        # Create the video frame (a QLabel to display the video)
+        video_feed_replay = QLabel("Video Feed")
+        video_feed_replay.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        replay_layout.addWidget(video_feed_replay)
+
+        # Create a bottom frame (could be used for buttons, controls, etc.)
+        bottom_frame = QFrame()
+        bottom_frame.setFixedHeight(self.height // 2)
+        replay_layout.addWidget(bottom_frame)
+
+        cap_replay = cv2.VideoCapture(video_path)
+
+        # Make sure the video file is opened
+        if not cap_replay.isOpened():
+            print(f"Error: Could not open video file {video_path}")
+            return
+
+        def Update_Replay_Frame():
+            ret, frame = cap_replay.read()
+            if not ret:
+                print("Replay ended.")
+                cap_replay.release()
+                replay_window.close()
+                return
+
+            frame_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+            h, w, ch = frame_rgb.shape
+            bytes_per_line = ch * w
+            qt_frame = QImage(
+                frame_rgb.data,
+                w,
+                h,
+                bytes_per_line,
+                QImage.Format.Format_RGB888,
+            )
+
+            # Scale the QImage to fit the window
+            scaled_qt_frame = qt_frame.scaled(
+                self.width, self.height, Qt.AspectRatioMode.KeepAspectRatio
+            )
+
+            # Set the scaled image to the QLabel
+            video_feed_replay.setPixmap(QPixmap.fromImage(scaled_qt_frame))
+
+            # Update every frame 1000/fps milliseconds
+            QTimer.singleShot(int(1000 / self.fps), Update_Replay_Frame)
+
+        # Start the frame updates
+        Update_Replay_Frame()
+
+        # Show the replay window
+        replay_window.show()
 
 
 if __name__ == "__main__":
