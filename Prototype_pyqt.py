@@ -16,58 +16,114 @@ class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
 
+        self.side_frame_width = 100
+        self.top_frame_height = 50
+
+        self.sf_button_width = 80
+        self.tf_button_width = 80
+
+        self.SetupGUI()
+
+    def SetupGUI(self):
         self.setWindowTitle("RePoste Prototype (PyQt6)")
         self.setGeometry(100, 100, 800, 600)
 
-        # Main window variables
-        self.main_window_widget = QWidget()
-        self.main_window_layout = QVBoxLayout()
+        # app window
+        self.app_window_widget = QWidget()
+        self.app_window_layout = QHBoxLayout()
 
-        # Top frame
-        self.top_frame = QFrame()
-        self.top_frame_layout = QHBoxLayout()
-
-        self.placehold_button = QPushButton("Placeholder")
-        self.top_frame_layout.addWidget(self.placehold_button)
-
-        self.top_frame.setLayout(self.top_frame_layout)
-        self.top_frame.setFixedHeight(50)
-
-        # Horizontal area for video frame
-        self.video_frame = QHBoxLayout()
-
-        # Side Frame
+        # Side frame
         self.side_frame = QFrame()
-        self.side_frame_layout = QVBoxLayout()
+        self.side_frame.setFixedWidth(self.side_frame_width)
+        self.side_frame_layout = QVBoxLayout(self.side_frame)
 
-        self.start_button = QPushButton("Start")
+        # Add buttons to side frame
+        self.play_button = QPushButton("Play")
         self.stop_button = QPushButton("Stop")
         self.replay_button = QPushButton("Replay")
 
-        self.side_frame_layout.addWidget(self.start_button)
+        self.play_button.setFixedWidth(self.sf_button_width)
+        self.stop_button.setFixedWidth(self.sf_button_width)
+        self.replay_button.setFixedWidth(self.sf_button_width)
+
+        self.side_frame_layout.addWidget(self.play_button)
         self.side_frame_layout.addWidget(self.stop_button)
         self.side_frame_layout.addWidget(self.replay_button)
+        self.app_window_layout.addWidget(self.side_frame)
 
-        self.side_frame.setLayout(self.side_frame_layout)
-        self.side_frame.setFixedWidth(150)
+        # Top and video frame independent of side frame
+        self.main_window_widget = QWidget()
+        self.main_window_layout = QVBoxLayout(self.main_window_widget)
+
+        # Top Frame
+        self.top_frame = QFrame()
+        self.top_frame.setFixedHeight(self.top_frame_height)
+        self.top_frame_layout = QVBoxLayout(self.top_frame)
+
+        # Add buttons to top frame
+        self.save_file_button = QPushButton("Save")
+        self.save_file_button.setFixedWidth(self.tf_button_width)
+        self.top_frame_layout.addWidget(self.save_file_button)
 
         # Video Frame
-        self.video_feed = QLabel("Video Feed")
-        self.video_feed.setStyleSheet("background-color: lightgray;")
-        self.video_feed.setAlignment(Qt.AlignmentFlag.AlignCenter)
-
-        self.video_frame.addWidget(self.side_frame)
-        self.video_frame.addWidget(self.video_feed)
-
+        self.video_frame = QLabel("Video Feed")
+        self.video_frame.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self.main_window_layout.addWidget(self.top_frame)
-        self.main_window_layout.addLayout(self.video_frame)
+        self.main_window_layout.addWidget(self.video_frame)
 
-        self.main_window_widget.setLayout(self.main_window_layout)
-        self.setCentralWidget(self.main_window_widget)
+        # Apply and format widgets to the app
+        self.app_window_layout.addWidget(self.main_window_widget)
+        self.app_window_widget.setLayout(self.app_window_layout)
+
+        self.StylingGUI()
+
+        # renders widgets to screen
+        self.setCentralWidget(self.app_window_widget)
+
+    def StylingGUI(self):
+
+        # Side frame
+        self.side_frame.setStyleSheet(
+            """ QFrame { background-color: darkgray;
+            border: 1px solid black;
+            border-radius: 10px;}"""
+        )
+
+        # Top frame
+        self.top_frame.setStyleSheet(
+            """ QFrame { background-color: darkgray;
+            border: 1px solid black;
+            border-radius: 10px;}"""
+        )
+
+        # Video frame
+        self.video_frame.setStyleSheet(
+            """ QLabel { background-color: darkgray;
+            border-radius: 10px;}"""
+        )
+
+        # Button Styling
+        self.play_button.setStyleSheet(
+            """ QPushButton { background-color: green;}"""
+        )
+
+        self.stop_button.setStyleSheet(
+            """ QPushButton { background-color: red;}"""
+        )
+
+        self.replay_button.setStyleSheet(
+            """ QPushButton { background-color: orange;}"""
+        )
+
+        self.save_file_button.setStyleSheet(
+            """ QPushButton { background-color: slategray;}"""
+        )
 
 
 if __name__ == "__main__":
     app = QApplication([])
+
+    app.setStyle("fusion")
 
     main_window = MainWindow()
     main_window.show()
