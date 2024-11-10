@@ -1,5 +1,4 @@
 import sys
-import cv2
 import os
 from PyQt6.QtWidgets import (
     QApplication,
@@ -148,49 +147,41 @@ class MainWindow(QMainWindow):
         )
 
     def Update_Frame(self):
-        if self.is_recording:
-            ret, frame = self.cap.read()
-            if not ret:
-                print(
-                    "Error: Couldn't receive frame (stream end?). Exiting..."
+        try:
+            if self.is_recording:
+                frame = self.cap.get_next_data()
+
+                # Convert frame to QImage to update inside the QLabel
+                h, w, ch = frame.shape
+                bytes_per_line = ch * w
+                qt_frame = QImage(
+                    frame.data,
+                    w,
+                    h,
+                    bytes_per_line,
+                    QImage.Format.Format_RGB888,
                 )
-                return
 
-            frame_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+                # scaled QImage frames
+                scaled_qt_frame = qt_frame.scaled(
+                    self.video_feed.size(), Qt.AspectRatioMode.KeepAspectRatio
+                )
 
-            # Convert frame to QImage to update inside the QLabel
-            h, w, ch = frame_rgb.shape
-            bytes_per_line = ch * w
-            qt_frame = QImage(
-                frame_rgb.data,
-                w,
-                h,
-                bytes_per_line,
-                QImage.Format.Format_RGB888,
-            )
+                # Set the scaled qt frame to the label
+                self.video_feed.setPixmap(QPixmap.fromImage(scaled_qt_frame))
 
-            # scaled QImage frames
-            scaled_qt_frame = qt_frame.scaled(
-                self.video_feed.size(), Qt.AspectRatioMode.KeepAspectRatio
-            )
+                # Add frame to buffer
+                self.buffer.append(frame)
+                if len(self.buffer) > self.max_frames:
+                    self.buffer.pop(0)
 
-            # Set the scaled qt frame to the label
-            self.video_feed.setPixmap(QPixmap.fromImage(scaled_qt_frame))
-
-            # Add frame to buffer
-            self.buffer.append(frame_rgb)
-            if len(self.buffer) > self.max_frames:
-                self.buffer.pop(0)
-
-            # Update frame every 1000/fps milliseconds
-            QTimer.singleShot(int(1000 / self.fps), self.Update_Frame)
+                # Update frame every 1000/fps milliseconds
+                QTimer.singleShot(int(1000 / self.fps), self.Update_Frame)
+        except (IndexError, RuntimeError, StopIteration) as e:
+            print(f"Error: {e}")
 
     def Play_Video(self):
-        self.cap = cv2.VideoCapture(0)
-        if not self.cap.isOpened():
-            print("Error: Could not open webcam.")
-            return
-
+        self.cap = imageio.get_reader("<video0>", "ffmpeg")
         self.is_recording = True
         self.buffer.clear()
         print("Recording started.")
@@ -199,7 +190,7 @@ class MainWindow(QMainWindow):
     def Stop_Video(self):
         self.is_recording = False
         if self.cap:
-            self.cap.release()
+            self.cap.close()
             self.cap = None
 
         self.video_feed.clear()
@@ -223,7 +214,7 @@ class MainWindow(QMainWindow):
         # TODO: make replay window pretty
         replay_window = QWidget()
         replay_window.setWindowTitle(f"Video Replay: {video_path}")
-        replay_window.setGeometry(100, 100, self.width, self.height)
+        replay_window.setGeometry(1000, 100, self.width, self.height)
         replay_window.setWindowFlag(Qt.WindowType.WindowStaysOnTopHint)
 
         # Layout for the replay window
@@ -239,26 +230,21 @@ class MainWindow(QMainWindow):
         bottom_frame.setFixedHeight(self.height // 2)
         replay_layout.addWidget(bottom_frame)
 
-        cap_replay = cv2.VideoCapture(video_path)
-
-        # Make sure the video file is opened
-        if not cap_replay.isOpened():
-            print(f"Error: Could not open video file {video_path}")
-            return
+        cap_replay = imageio.get_reader(video_path).iter_data()
 
         def Update_Replay_Frame():
-            ret, frame = cap_replay.read()
-            if not ret:
+            try:
+                frame = next(cap_replay)
+            except (IndexError, RuntimeError, StopIteration):
                 print("Replay ended.")
-                cap_replay.release()
+                cap_replay.close()
                 replay_window.close()
                 return
 
-            frame_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-            h, w, ch = frame_rgb.shape
+            h, w, ch = frame.shape
             bytes_per_line = ch * w
             qt_frame = QImage(
-                frame_rgb.data,
+                frame.data,
                 w,
                 h,
                 bytes_per_line,
