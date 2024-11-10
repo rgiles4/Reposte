@@ -1,7 +1,6 @@
 import sys
 import cv2
 import os
-import numpy as np
 from PyQt6.QtWidgets import (
     QApplication,
     QMainWindow,
@@ -14,7 +13,6 @@ from PyQt6.QtWidgets import (
 )
 from PyQt6.QtCore import Qt, QTimer
 from PyQt6.QtGui import QImage, QPixmap
-from PIL import Image
 
 import imageio
 
