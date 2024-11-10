@@ -49,6 +49,9 @@ class MainWindow(QMainWindow):
         self.side_frame_layout.addWidget(self.play_button)
         self.side_frame_layout.addWidget(self.stop_button)
         self.side_frame_layout.addWidget(self.replay_button)
+
+        # Align layout to the top of the side frame
+        self.side_frame_layout.setAlignment(Qt.AlignmentFlag.AlignTop)
         self.app_window_layout.addWidget(self.side_frame)
 
         # Top and video frame independent of side frame
@@ -63,7 +66,9 @@ class MainWindow(QMainWindow):
         # Add buttons to top frame
         self.save_file_button = QPushButton("Save")
         self.save_file_button.setFixedWidth(self.tf_button_width)
-        self.top_frame_layout.addWidget(self.save_file_button)
+        self.top_frame_layout.addWidget(
+            self.save_file_button, alignment=Qt.AlignmentFlag.AlignRight
+        )
 
         # Video Frame
         self.video_frame = QLabel("Video Feed")
@@ -81,6 +86,8 @@ class MainWindow(QMainWindow):
         self.setCentralWidget(self.app_window_widget)
 
     def StylingGUI(self):
+
+        self.app_window_widget.setStyleSheet("""background-color: gray;""")
 
         # Side frame
         self.side_frame.setStyleSheet(
@@ -122,7 +129,6 @@ class MainWindow(QMainWindow):
 
 if __name__ == "__main__":
     app = QApplication([])
-
     app.setStyle("fusion")
 
     main_window = MainWindow()
