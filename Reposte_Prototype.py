@@ -9,6 +9,7 @@ from PyQt6.QtWidgets import (
     QLabel,
     QFrame,
     QPushButton,
+    QSlider,
 )
 from PyQt6.QtCore import Qt, QTimer
 from PyQt6.QtGui import QImage, QPixmap
@@ -32,6 +33,7 @@ class MainWindow(QMainWindow):
         self.buffer = []
         self.max_frames = 4 * self.fps
         self.recording_num = 0
+        self.playback_duration = 4
 
         self.Setup_GUI()
 
@@ -93,6 +95,23 @@ class MainWindow(QMainWindow):
         self.main_window_layout.addWidget(self.top_frame)
         self.main_window_layout.addWidget(self.video_feed)
 
+        # Slider for playback length (1-10 seconds)
+        slider_layout = QHBoxLayout()
+        self.playback_frame = QFrame()
+
+        self.playback_label = QLabel(f"Playback Duration: {self.playback_duration} Seconds")
+        self.playback_slider = QSlider(Qt.Orientation.Horizontal)
+        self.playback_slider.setRange(1, 10)
+        self.playback_slider.setValue(self.playback_duration) 
+        self.playback_slider.setToolTip("Set playback duration (seconds)")
+        self.playback_slider.valueChanged.connect(self.Set_Playback_Duration)
+        self.playback_frame_layout = QVBoxLayout(self.playback_frame)
+        self.playback_frame_layout.addWidget(self.playback_label)
+        slider_layout.addWidget(self.playback_frame)
+        slider_layout.addWidget(self.playback_slider)
+
+        self.main_window_layout.addLayout(slider_layout)
+
         # Apply and format widgets to the app
         self.app_window_layout.addWidget(self.main_window_widget)
         self.app_window_widget.setLayout(self.app_window_layout)
@@ -129,6 +148,14 @@ class MainWindow(QMainWindow):
             border-radius: 10px;}"""
         )
 
+        # Playback slider frame
+        self.playback_frame.setStyleSheet(
+            """ QFrame { background-color: #636363;
+            border: 1px solid black;
+            border-radius: 5px;
+            padding: 5px;}"""
+        )
+
         # Button Styling
         self.play_button.setStyleSheet(
             """ QPushButton { background-color: #2e6f40;}"""
@@ -145,6 +172,12 @@ class MainWindow(QMainWindow):
         self.save_file_button.setStyleSheet(
             """ QPushButton { background-color: #6d8196;}"""
         )
+    
+    # Updates max_frames to set playback duration
+    def Set_Playback_Duration(self, value):
+        self.playback_duration = value
+        self.max_frames = self.playback_duration * self.fps
+        self.playback_label.setText(f"Playback Duration: {self.playback_duration} Seconds")
 
     def Update_Frame(self):
         try:
