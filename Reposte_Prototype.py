@@ -159,9 +159,13 @@ class MainWindow(QMainWindow):
         )
 
         # Button Styling
-        self.play_button.setStyleSheet(""" QPushButton { background-color: #2e6f40;}""")
+        self.play_button.setStyleSheet(
+            """ QPushButton { background-color: #2e6f40;}"""
+            )
 
-        self.stop_button.setStyleSheet(""" QPushButton { background-color: #942222;}""")
+        self.stop_button.setStyleSheet(
+            """ QPushButton { background-color: #942222;}"""
+            )
 
         self.replay_button.setStyleSheet(
             """ QPushButton { background-color: #be5103;}"""
@@ -230,7 +234,9 @@ class MainWindow(QMainWindow):
         print("Recording stopped.")
 
     def Save_Replay(self):
-        video_path = os.path.join(os.getcwd(), f"Video-Output{self.recording_num}.mp4")
+        video_path = os.path.join(
+            os.getcwd(), f"Video-Output{self.recording_num}.mp4"
+            )
 
         with imageio.get_writer(video_path, fps=self.fps) as writer:
             for frame in self.buffer:
