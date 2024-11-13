@@ -99,10 +99,12 @@ class MainWindow(QMainWindow):
         slider_layout = QHBoxLayout()
         self.playback_frame = QFrame()
 
-        self.playback_label = QLabel(f"Playback Duration: {self.playback_duration} Seconds")
+        self.playback_label = QLabel(
+            f"Playback Duration: {self.playback_duration} Seconds"
+        )
         self.playback_slider = QSlider(Qt.Orientation.Horizontal)
         self.playback_slider.setRange(1, 10)
-        self.playback_slider.setValue(self.playback_duration) 
+        self.playback_slider.setValue(self.playback_duration)
         self.playback_slider.setToolTip("Set playback duration (seconds)")
         self.playback_slider.valueChanged.connect(self.Set_Playback_Duration)
         self.playback_frame_layout = QVBoxLayout(self.playback_frame)
@@ -157,13 +159,9 @@ class MainWindow(QMainWindow):
         )
 
         # Button Styling
-        self.play_button.setStyleSheet(
-            """ QPushButton { background-color: #2e6f40;}"""
-        )
+        self.play_button.setStyleSheet(""" QPushButton { background-color: #2e6f40;}""")
 
-        self.stop_button.setStyleSheet(
-            """ QPushButton { background-color: #942222;}"""
-        )
+        self.stop_button.setStyleSheet(""" QPushButton { background-color: #942222;}""")
 
         self.replay_button.setStyleSheet(
             """ QPushButton { background-color: #be5103;}"""
@@ -172,12 +170,14 @@ class MainWindow(QMainWindow):
         self.save_file_button.setStyleSheet(
             """ QPushButton { background-color: #6d8196;}"""
         )
-    
+
     # Updates max_frames to set playback duration
     def Set_Playback_Duration(self, value):
         self.playback_duration = value
         self.max_frames = self.playback_duration * self.fps
-        self.playback_label.setText(f"Playback Duration: {self.playback_duration} Seconds")
+        self.playback_label.setText(
+            f"Playback Duration: {self.playback_duration} Seconds"
+        )
 
     def Update_Frame(self):
         try:
@@ -230,9 +230,7 @@ class MainWindow(QMainWindow):
         print("Recording stopped.")
 
     def Save_Replay(self):
-        video_path = os.path.join(
-            os.getcwd(), f"Video-Output{self.recording_num}.mp4"
-        )
+        video_path = os.path.join(os.getcwd(), f"Video-Output{self.recording_num}.mp4")
 
         with imageio.get_writer(video_path, fps=self.fps) as writer:
             for frame in self.buffer:
