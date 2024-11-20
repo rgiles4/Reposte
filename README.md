@@ -1,5 +1,6 @@
 # Reposte
 [![Python application](https://github.com/rgiles4/Reposte/actions/workflows/python-app.yml/badge.svg)](https://github.com/rgiles4/Reposte/actions/workflows/python-app.yml)
+
 This capstone project is for the development of a video replay software system for the sport of fencing. This project is for Dr. Terry Yoo, in partial fulfillment of the Computer Science BS degree for the University of Maine. Our team will also be working closely with the University of Maine’s fencing club, the Blade Society, when developing this product.
 
 The goal of this project is to create open-source video replay software that can run on a laptop using MacOS or Windows. The USA National Fencing requires a video replay system to help referees review calls during fencing matches. Currently the replay system used is outdated, expensive, closed-sourced and needs to be updated. This product aims to give a solution to clubs and competitions by offering an open-source solution that can increase accessibility to video replay systems.
