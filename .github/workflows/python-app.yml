@@ -52,8 +52,8 @@ jobs:
     - uses: pre-commit/action@v3.0.1
 
     # Build Package
-    - name: Build Package
-      working-directory: python_package_exercise/python_package_exercise
-      run: |
-        python -m build
+    # - name: Build Package
+      # working-directory: python_package_exercise/python_package_exercise
+      # run: |
+        # python -m build
       
