@@ -3,7 +3,6 @@ import imageio
 import numpy as np 
 from PyQt6.QtGui import QImage, QPixmap
 from PyQt6.QtCore import QTimer, Qt
-from PyQt6.QtGui import QPixmap
 from collections import deque
 from datetime import datetime
 import logging
