@@ -6,7 +6,7 @@ class MainWindow(QMainWindow):
     """
     MainWindow is the primary GUI class for the video recorder application.
 
-    It handles the layout and display of the video feed, initializes the
+    Handles the layout and display of the video feed, initializes the
     VideoRecorder, and processes user input for controlling video recording.
 
     things it do:
@@ -50,7 +50,32 @@ class MainWindow(QMainWindow):
             self.recorder.pause_recording()
         elif event.key() == Qt.Key.Key_R:  # Resume recording with 'R'
             self.recorder.resume_recording()
-        elif event.key() == Qt.Key.Key_A:  # Start in-app replay with 'A'
+        elif event.key() == Qt.Key.Key_Up:  # Start in-app replay with 'Up Key'
             self.recorder.start_in_app_replay(self.update_frame)
-        elif event.key() == Qt.Key.Key_X:  # Stop in-app replay and resume live recording with 'X'
+        elif event.key() == Qt.Key.Key_Down:  # Stop in-app replay and resume live recording with 'Down Key'
             self.recorder.stop_in_app_replay(resume_live=True)
+        elif event.key() == Qt.Key.Key_0:
+            self.recorder.set_replay_speed(1.0)  #In-app replay: 100% speed
+        elif event.key() == Qt.Key.Key_1:
+            self.recorder.set_replay_speed(0.1)  #In-app replay: 10% speed
+        elif event.key() == Qt.Key.Key_2:
+            self.recorder.set_replay_speed(0.2)  #In-app replay: 20% speed
+        elif event.key() == Qt.Key.Key_3:
+            self.recorder.set_replay_speed(0.3)  # In-app replay:30% speed
+        elif event.key() == Qt.Key.Key_4:
+            self.recorder.set_replay_speed(0.4)  #In-app replay: 40% speed
+        elif event.key() == Qt.Key.Key_5:
+            self.recorder.set_replay_speed(0.5)  #In-app replay: 50% speed
+        elif event.key() == Qt.Key.Key_6:
+            self.recorder.set_replay_speed(0.6)  #In-app replay: 60% speed
+        elif event.key() == Qt.Key.Key_7:
+            self.recorder.set_replay_speed(0.7)  #In-app replay: 70% speed
+        elif event.key() == Qt.Key.Key_8:
+            self.recorder.set_replay_speed(0.8)  #In-app replay: 80% speed
+        elif event.key() == Qt.Key.Key_9:
+            self.recorder.set_replay_speed(0.9)  #In-app replay: 90% speed
+        elif event.key() == Qt.Key.Key_Left:
+            self.recorder.show_previous_frame() # In-app replay: go to previous frame
+        elif event.key() == Qt.Key.Key_Right:
+            self.recorder.show_next_frame() # In-app replay: go to next frame
+

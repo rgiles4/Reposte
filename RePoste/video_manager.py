@@ -1,6 +1,6 @@
 import os
 import imageio
-import numpy as np 
+import numpy as np
 from PyQt6.QtGui import QImage, QPixmap
 from PyQt6.QtCore import QTimer, Qt
 from collections import deque
@@ -27,6 +27,7 @@ class VideoRecorder:
         self.recording = False
         self.paused = False
         self.reader = None
+        self.replay_speed = 1.0 #Default replay speed
 
         # For in-app replay
         self.replaying = False
@@ -129,6 +130,7 @@ class VideoRecorder:
             self.stop_recording()
 
         self.replaying = True
+        self.replay_speed = 1.0 # Default replay speed
         self.replay_index = 0
         self.replay_frames = list(self.buffer)
         self.update_callback = update_callback or self.update_callback
@@ -142,24 +144,54 @@ class VideoRecorder:
 
     def _show_replay_frame(self):
         """Displays a single frame from self.replay_frames by index."""
-        if not self.replaying:
-            return
-
-        if self.replay_index >= len(self.replay_frames):
-            self.stop_in_app_replay()
+        if not self.replaying and (self.replay_index < 0 or self.replay_index >= len(self.replay_frames)):
             return
 
         frame = self.replay_frames[self.replay_index]
-        self.replay_index += 1
-
         pixmap = self._convert_frame_to_pixmap(frame)
         if self.update_callback:
             self.update_callback(pixmap)
+        
+        if self.replaying:
+            self.replay_index += 1
+        if self.replay_index >= len(self.replay_frames):
+            self.stop_in_app_replay()
+        else:
+            self.replay_timer = QTimer()
+            self.replay_timer.setSingleShot(True)
+            self.replay_timer.timeout.connect(self._show_replay_frame)
+            self.replay_timer.start(int(1000 / (self.fps * self.replay_speed)))
 
-        self.replay_timer = QTimer()
-        self.replay_timer.setSingleShot(True)
-        self.replay_timer.timeout.connect(self._show_replay_frame)
-        self.replay_timer.start(int(1000 / self.fps))
+    def show_next_frame(self):
+        """Manually advance to the next frame in replay."""
+        if self.replaying:
+            self.replaying = False
+            if self.replay_timer:
+                self.replay_timer.stop()
+
+        if self.replay_index < len(self.replay_frames) - 1:
+            self.replay_index += 1
+            self._show_replay_frame()
+        else:
+            logger.info("At the last frame of the replay.")
+
+    def show_previous_frame(self):
+        """Manually go back to the previous frame in replay."""
+        if self.replaying:
+            self.replaying = False
+            if self.replay_timer:
+                self.replay_timer.stop()
+
+        if self.replay_index > 0:
+            self.replay_index -= 1
+            self._show_replay_frame()
+        else:
+            logger.info("At the first frame of the replay.")
+
+    def set_replay_speed(self, speed: float):
+        """Sets the speed of the replay."""
+        self.replay_speed = speed
+        logger.info(f"Replay speed set to {speed}x.")
 
     def stop_in_app_replay(self, resume_live: bool = False):
         """Stops the in-app replay and clears replay variables."""
