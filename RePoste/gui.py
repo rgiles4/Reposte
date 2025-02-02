@@ -6,7 +6,7 @@ from PyQt6.QtWidgets import (
     QWidget,
 )
 from PyQt6.QtCore import Qt
-from video_manager import VideoRecorder
+from RePoste.video_manager import VideoRecorder
 
 
 class MainWindow(QMainWindow):
