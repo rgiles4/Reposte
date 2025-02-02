@@ -2,7 +2,7 @@ import os
 import imageio
 import numpy as np
 from PyQt6.QtGui import QImage, QPixmap
-from PyQt6.QtCore import QTimer, Qt
+from PyQt6.QtCore import QTimer
 from collections import deque
 from datetime import datetime
 import logging
@@ -53,7 +53,8 @@ class VideoRecorder:
         """
         Starts capturing video and updating the GUI.
         Args:
-            update_callback (Callable[[QPixmap], None]): Function to update the video feed in the GUI.
+            update_callback (Callable[[QPixmap], None]):
+            Function to update the video feed in the GUI.
         """
         try:
             self.recording = True
@@ -103,7 +104,8 @@ class VideoRecorder:
         """
         Saves the buffered frames as a video file.
         Args:
-            filename (str): The name of the saved replay file. If None, generates a timestamp-based name.
+            filename (str): The name of the saved replay file.
+            If None, generates a timestamp-based name.
         """
         if not filename:
             timestamp = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
@@ -131,16 +133,18 @@ class VideoRecorder:
         self, update_callback: Optional[Callable[[QPixmap], None]] = None
     ):
         """
-        Plays back the frames currently in 'self.buffer' in the same GUI widget.
+        Plays back the frames currently in 'self.buffer'
+        in the same GUI widget.
         Args:
-            update_callback (callable): A function to display frames (QPixmap) in the GUI.
-                                        If None, uses self.update_callback from live capture.
+            update_callback (callable): A function to display
+            frames (QPixmap) in the GUI.
+            If None, uses self.update_callback from live capture.
         """
         if self.recording:
             self.stop_recording()
 
         self.replaying = True
-        self.replay_speed = 1.0  # Default replay speed
+        self.replay_speed = 1.0
         self.replay_index = 0
         self.replay_frames = list(self.buffer)
         self.update_callback = update_callback or self.update_callback
