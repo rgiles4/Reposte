@@ -9,11 +9,19 @@ import logging
 from typing import Callable, Optional
 
 # Configure logging
-logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
+logging.basicConfig(
+    level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s"
+)
 logger = logging.getLogger()
 
+
 class VideoRecorder:
-    def __init__(self, fps: int = 60, buffer_duration: int = 5, output_dir: str = "output"):
+    def __init__(
+        self,
+        fps: int = 60,
+        buffer_duration: int = 5,
+        output_dir: str = "output",
+    ):
         """
         Initializes the VideoRecorder.
         Args:
@@ -27,7 +35,7 @@ class VideoRecorder:
         self.recording = False
         self.paused = False
         self.reader = None
-        self.replay_speed = 1.0 #Default replay speed
+        self.replay_speed = 1.0  # Default replay speed
 
         # For in-app replay
         self.replaying = False
@@ -52,22 +60,22 @@ class VideoRecorder:
             self.paused = False
             self.reader = imageio.get_reader("<video0>", "ffmpeg")
             self.update_callback = update_callback
-            self._capture_frame()
+            self.capture_frame()
             logger.info("Recording started.")
         except Exception as e:
             logger.error(f"Error starting recording: {e}")
             self.recording = False
 
-    def _capture_frame(self):
+    def capture_frame(self):
         """Captures a single frame and updates the GUI."""
         if not self.recording or self.paused:
             return
         try:
             frame = self.reader.get_next_data()
-            pixmap = self._convert_frame_to_pixmap(frame)
+            pixmap = self.convert_frame_to_pixmap(frame)
             self.update_callback(pixmap)
             self.buffer.append(frame)
-            QTimer.singleShot(int(1000 / self.fps), self._capture_frame)
+            QTimer.singleShot(int(1000 / self.fps), self.capture_frame)
         except Exception as e:
             logger.error(f"Error capturing frame: {e}")
 
@@ -81,7 +89,7 @@ class VideoRecorder:
         """Resumes the recording."""
         if self.recording and self.paused:
             self.paused = False
-            self._capture_frame()
+            self.capture_frame()
             logger.info("Recording resumed.")
 
     def stop_recording(self):
@@ -119,7 +127,9 @@ class VideoRecorder:
         self.buffer = deque(maxlen=self.fps * duration)
         logger.info(f"Buffer duration set to {duration} seconds.")
 
-    def start_in_app_replay(self, update_callback: Optional[Callable[[QPixmap], None]] = None):
+    def start_in_app_replay(
+        self, update_callback: Optional[Callable[[QPixmap], None]] = None
+    ):
         """
         Plays back the frames currently in 'self.buffer' in the same GUI widget.
         Args:
@@ -130,7 +140,7 @@ class VideoRecorder:
             self.stop_recording()
 
         self.replaying = True
-        self.replay_speed = 1.0 # Default replay speed
+        self.replay_speed = 1.0  # Default replay speed
         self.replay_index = 0
         self.replay_frames = list(self.buffer)
         self.update_callback = update_callback or self.update_callback
@@ -139,19 +149,24 @@ class VideoRecorder:
             logger.warning("No frames in buffer to replay.")
             return
 
-        logger.info(f"Starting in-app replay of {len(self.replay_frames)} frames.")
-        self._show_replay_frame()
+        logger.info(
+            f"Starting in-app replay of {len(self.replay_frames)} frames."
+        )
+        self.show_replay_frame()
 
-    def _show_replay_frame(self):
+    def show_replay_frame(self):
         """Displays a single frame from self.replay_frames by index."""
-        if not self.replaying and (self.replay_index < 0 or self.replay_index >= len(self.replay_frames)):
+        if not self.replaying and (
+            self.replay_index < 0
+            or self.replay_index >= len(self.replay_frames)
+        ):
             return
 
         frame = self.replay_frames[self.replay_index]
-        pixmap = self._convert_frame_to_pixmap(frame)
+        pixmap = self.convert_frame_to_pixmap(frame)
         if self.update_callback:
             self.update_callback(pixmap)
-        
+
         if self.replaying:
             self.replay_index += 1
         if self.replay_index >= len(self.replay_frames):
@@ -159,8 +174,10 @@ class VideoRecorder:
         else:
             self.replay_timer = QTimer()
             self.replay_timer.setSingleShot(True)
-            self.replay_timer.timeout.connect(self._show_replay_frame)
-            self.replay_timer.start(int(1000 / (self.fps * self.replay_speed)))
+            self.replay_timer.timeout.connect(self.show_replay_frame)
+            self.replay_timer.start(
+                int(1000 / (self.fps * self.replay_speed))
+            )
 
     def show_next_frame(self):
         """Manually advance to the next frame in replay."""
@@ -171,7 +188,7 @@ class VideoRecorder:
 
         if self.replay_index < len(self.replay_frames) - 1:
             self.replay_index += 1
-            self._show_replay_frame()
+            self.show_replay_frame()
         else:
             logger.info("At the last frame of the replay.")
 
@@ -184,7 +201,7 @@ class VideoRecorder:
 
         if self.replay_index > 0:
             self.replay_index -= 1
-            self._show_replay_frame()
+            self.show_replay_frame()
         else:
             logger.info("At the first frame of the replay.")
 
@@ -205,15 +222,18 @@ class VideoRecorder:
         if resume_live:
             self.start_recording(self.update_callback)
 
-    def _convert_frame_to_pixmap(self, frame) -> QPixmap:
+    def convert_frame_to_pixmap(self, frame) -> QPixmap:
         """Converts a frame to QPixmap and mirrors it horizontally."""
         # Mirror the frame horizontally using NumPy
         mirrored_frame = np.fliplr(frame)
 
-        h, w, ch = mirrored_frame.shape
-        bytes_per_line = ch * w
-        qt_image = QImage(mirrored_frame.data.tobytes(), w, h, bytes_per_line, QImage.Format.Format_RGB888)
-        scaled_width = int(w * 2)
-        scaled_height = int(h * 2)
-        scaled_image = qt_image.scaled(scaled_width, scaled_height, Qt.AspectRatioMode.KeepAspectRatio)
-        return QPixmap.fromImage(scaled_image)
+        height, width, channel = mirrored_frame.shape
+        bytes_per_line = channel * width
+        qt_image = QImage(
+            mirrored_frame.data.tobytes(),
+            width,
+            height,
+            bytes_per_line,
+            QImage.Format.Format_RGB888,
+        )
+        return QPixmap.fromImage(qt_image)

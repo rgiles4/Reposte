@@ -1,6 +1,13 @@
-from PyQt6.QtWidgets import QMainWindow, QLabel, QVBoxLayout, QWidget
+from PyQt6.QtWidgets import (
+    QSizePolicy,
+    QMainWindow,
+    QLabel,
+    QVBoxLayout,
+    QWidget,
+)
 from PyQt6.QtCore import Qt
 from video_manager import VideoRecorder
+
 
 class MainWindow(QMainWindow):
     """
@@ -17,9 +24,11 @@ class MainWindow(QMainWindow):
     things it need to-do:
     - Add more key events for managing the replay functionality.
     """
+
     def __init__(self):
         super().__init__()
-        self.setWindowTitle("Fullscreen Video Recorder")
+        self.setWindowTitle("RePoste")
+        self.setWindowState(Qt.WindowState.WindowMaximized)
 
         # Set up central widget and layout
         central_widget = QWidget()
@@ -29,6 +38,12 @@ class MainWindow(QMainWindow):
         # Video feed QLabel
         self.video_feed = QLabel()
         self.video_feed.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        # NOTE: setSizePolicy is making the label size the size of the window
+        # If elements want to be added around the label, this will have
+        # to be adjusted
+        self.video_feed.setSizePolicy(
+            QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding
+        )
         self.layout.addWidget(self.video_feed)
 
         # Initialize VideoRecorder
@@ -36,46 +51,86 @@ class MainWindow(QMainWindow):
         self.recorder.start_recording(self.update_frame)
 
     def update_frame(self, pixmap):
-        """Update the video feed with the provided pixmap."""
-        self.video_feed.setPixmap(pixmap)
+        """Update video feed to fill the label to the closest aspect ratio.
+
+        TODO: webcam doesn't fit exactly to the label.  White bars on the sides are larger
+        than the top adn bottom.  Fix video feed to fill all of the label (screen).
+        """
+
+        # Get label dimensions
+        label_size = self.video_feed.size()
+        label_width = label_size.width()
+        label_height = label_size.height()
+
+        # Get webcam (pixmap) dimensions
+        pixmap_width = pixmap.width()
+        pixmap_height = pixmap.height()
+
+        # Calculate aspect ratio of the pixmap
+        pixmap_aspect_ratio = pixmap_width / pixmap_height
+
+        if label_width / label_height > pixmap_aspect_ratio:
+            # Scale to fit height of gui window
+            target_height = label_height
+            target_width = int(target_height * pixmap_aspect_ratio)
+        else:
+            # Scake to fit width of gui window
+            target_width = label_width
+            target_height = int(target_width / pixmap_aspect_ratio)
+
+        # Scale the pixmap to the calculated dimensions
+        scaled_pixmap = pixmap.scaled(
+            target_width,
+            target_height,
+            Qt.AspectRatioMode.KeepAspectRatio,
+            Qt.TransformationMode.SmoothTransformation,
+        )
+
+        # Center the scaled pixmap in the label
+        self.video_feed.setPixmap(scaled_pixmap)
 
     def keyPressEvent(self, event):
         """Handle key presses for pausing, resuming, and saving replay."""
         if event.key() == Qt.Key.Key_Escape:
             self.recorder.stop_recording()
             self.close()
-        elif event.key() == Qt.Key.Key_Space:  # Stop recording and save with 'SPACE'
+        elif (
+            event.key() == Qt.Key.Key_Space
+        ):  # Stop recording and save with 'SPACE'
             self.recorder.save_replay()
         elif event.key() == Qt.Key.Key_P:  # Pause recording with 'P'
             self.recorder.pause_recording()
         elif event.key() == Qt.Key.Key_R:  # Resume recording with 'R'
             self.recorder.resume_recording()
-        elif event.key() == Qt.Key.Key_Up:  # Start in-app replay with 'Up Key'
+        elif (
+            event.key() == Qt.Key.Key_Up
+        ):  # Start in-app replay with 'Up Key'
             self.recorder.start_in_app_replay(self.update_frame)
-        elif event.key() == Qt.Key.Key_Down:  # Stop in-app replay and resume live recording with 'Down Key'
+        elif (
+            event.key() == Qt.Key.Key_Down
+        ):  # Stop in-app replay and resume live recording with 'Down Key'
             self.recorder.stop_in_app_replay(resume_live=True)
         elif event.key() == Qt.Key.Key_0:
-            self.recorder.set_replay_speed(1.0)  #In-app replay: 100% speed
+            self.recorder.set_replay_speed(1.0)  # In-app replay: 100% speed
         elif event.key() == Qt.Key.Key_1:
-            self.recorder.set_replay_speed(0.1)  #In-app replay: 10% speed
+            self.recorder.set_replay_speed(0.1)  # In-app replay: 10% speed
         elif event.key() == Qt.Key.Key_2:
-            self.recorder.set_replay_speed(0.2)  #In-app replay: 20% speed
+            self.recorder.set_replay_speed(0.2)  # In-app replay: 20% speed
         elif event.key() == Qt.Key.Key_3:
             self.recorder.set_replay_speed(0.3)  # In-app replay:30% speed
         elif event.key() == Qt.Key.Key_4:
-            self.recorder.set_replay_speed(0.4)  #In-app replay: 40% speed
+            self.recorder.set_replay_speed(0.4)  # In-app replay: 40% speed
         elif event.key() == Qt.Key.Key_5:
-            self.recorder.set_replay_speed(0.5)  #In-app replay: 50% speed
+            self.recorder.set_replay_speed(0.5)  # In-app replay: 50% speed
         elif event.key() == Qt.Key.Key_6:
-            self.recorder.set_replay_speed(0.6)  #In-app replay: 60% speed
+            self.recorder.set_replay_speed(0.6)  # In-app replay: 60% speed
         elif event.key() == Qt.Key.Key_7:
-            self.recorder.set_replay_speed(0.7)  #In-app replay: 70% speed
+            self.recorder.set_replay_speed(0.7)  # In-app replay: 70% speed
         elif event.key() == Qt.Key.Key_8:
-            self.recorder.set_replay_speed(0.8)  #In-app replay: 80% speed
+            self.recorder.set_replay_speed(0.8)  # In-app replay: 80% speed
         elif event.key() == Qt.Key.Key_9:
-            self.recorder.set_replay_speed(0.9)  #In-app replay: 90% speed
+            self.recorder.set_replay_speed(0.9)  # In-app replay: 90% speed
         elif event.key() == Qt.Key.Key_Left:
-            self.recorder.show_previous_frame() # In-app replay: go to previous frame
+            self.recorder.show_previous_frame()  # In-app replay: go to previous frame
         elif event.key() == Qt.Key.Key_Right:
-            self.recorder.show_next_frame() # In-app replay: go to next frame
-
+            self.recorder.show_next_frame()  # In-app replay: go to next frame
