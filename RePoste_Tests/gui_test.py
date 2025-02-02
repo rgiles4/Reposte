@@ -22,8 +22,16 @@ def test_frame_update(create_app):
 
     # Mock QPixmap
     mock_pixmap = MagicMock(spec=QPixmap)
-    mock_pixmap.width.return_value = 1920
-    mock_pixmap.height.return_value = 1080
+    mock_pixmap.width.return_value = 1920  # Mock width return value
+    mock_pixmap.height.return_value = 1080  # Mock height return value
+
+    # Mock the scaled method to return the mock_pixmap itself
+    scaled_pixmap = MagicMock(spec=QPixmap)
+    scaled_pixmap.width.return_value = 1920
+    scaled_pixmap.height.return_value = 1080
+
+    # Mock the scaled method of QPixmap to return the scaled_pixmap
+    mock_pixmap.scaled.return_value = scaled_pixmap
 
     window.video_feed.setPixmap = MagicMock()
 
@@ -32,12 +40,36 @@ def test_frame_update(create_app):
 
     # Assert
     window.video_feed.setPixmap.assert_called_once()
-    scaled_pixmap = window.video_feed.setPixmap.call_args[0][0]
+    scaled_pixmap_passed = window.video_feed.setPixmap.call_args[0][0]
 
-    assert scaled_pixmap.width() > 0, (
-        f"❌ Scaled pixmap has invalid width: {scaled_pixmap.width()}")
-    assert scaled_pixmap.height() > 0 (
-        f"❌ Scaled pixmap has invalid height: {scaled_pixmap.height()}")
+    # Assert that scaled_pixmap is actually a MagicMock and that the
+    # return values are correct
+    assert isinstance(scaled_pixmap_passed, MagicMock), (
+        "scaled_pixmap is not a MagicMock")
+
+    # Check that the width and height methods return the correct values
+    assert scaled_pixmap_passed.width() == 1920, (
+        f"❌ Expected width to be 1920: {scaled_pixmap_passed.width()}"
+    )
+    assert scaled_pixmap_passed.height() == 1080, (
+        f"❌ Expected height to be 1080: {scaled_pixmap_passed.height()}"
+    )
+
+    # Check the values are integers
+    assert isinstance(scaled_pixmap_passed.width(), int), (
+        f"❌ Expected an integer for width: {scaled_pixmap_passed.width()}"
+    )
+    assert isinstance(scaled_pixmap_passed.height(), int), (
+        f"❌ Expected an integer for height: {scaled_pixmap_passed.height()}"
+    )
+
+    # Ensure the pixmap has positive dimensions
+    assert scaled_pixmap_passed.width() > 0, (
+        f"❌ Scaled pixmap has invalid width: {scaled_pixmap_passed.width()}"
+    )
+    assert scaled_pixmap_passed.height() > 0, (
+        f"❌ Scaled pixmap has invalid height: {scaled_pixmap_passed.height()}"
+    )
 
     print("✅ update_frame() successfully updated the video feed!")
 
