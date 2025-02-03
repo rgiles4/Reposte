@@ -11,7 +11,7 @@ from PyQt6.QtWidgets import (
 )
 from PyQt6.QtCore import Qt, QSize
 from PyQt6.QtGui import QIcon
-from video_manager import VideoRecorder
+from RePoste.video_manager import VideoRecorder
 
 class SettingsWindow(QDialog):
     """
@@ -72,7 +72,7 @@ class MainWindow(QMainWindow):
 
         # Settings button overlay
         self.settings_button = QPushButton()
-        self.settings_button.setIcon(QIcon("../../Reposte/cog-svgrepo-com.svg"))
+        self.settings_button.setIcon(QIcon("../Reposte/images/cog-svgrepo-com.svg"))
         self.settings_button.setIconSize(QSize(32, 32))
         self.settings_button.setFixedSize(40, 40)
         self.settings_button.clicked.connect(self.open_settings_window)

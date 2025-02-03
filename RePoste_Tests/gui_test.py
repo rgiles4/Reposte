@@ -94,7 +94,8 @@ def test_keyPressEvent(key, method):
     window.recorder = MagicMock()
 
     # QKeyEvent for Key Press
-    event = QKeyEvent(QKeyEvent.Type.KeyPress, key, Qt.KeyboardModifier)
+    event = QKeyEvent(QKeyEvent.Type.KeyPress, key,
+                      Qt.KeyboardModifier.NoModifier)
 
     # Act
     window.keyPressEvent(event)
