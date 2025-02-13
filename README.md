@@ -17,24 +17,37 @@ The goal of this project is to create open-source video replay software that can
 |    |    | -- Reposte-EDA(1).jpg
 |    |    | -- SDDDecomposition(1).jpg
 |    |    | -- sysUseCase.jpg
+|    | -- CDR-RePoste.pdf
+|    | -- CDR.pdf
 |    | -- Cocomo Report.pdf
 |    | -- Prototype Stage 1 Dev.pdf
-|    | -- SDD.pdf
-|    | -- SRS.pdf
-| -- python_package_exercise/  # Assignment 5 File Directory; Note this is not a critical Directory
+|    | -- Prototype Stage 2 Dev-1.pdf
+|    | -- SDD-1.pdf
+|    | -- SRS-1.pdf
+|    | -- UIDD-1.pdf
+| -- RePoste/ # App Package Files
+|    | -- __init__.py
+|    | -- gui.py
+|    | -- main.py
+|    | -- replay_manager.py # Not Implemented
+|    | -- settings.py # Not Implemented
+|    | -- utils.py # Not Implemented
+|    | -- video_manager.py
+| -- RePoste_Tests/ # Unit Test Files
+|    | -- __init__.py
+|    | -- gui_test.py
+|    | -- main_test.py
+|    | -- replay_manager_test.py # Not Implemented
+|    | -- settings_test.py # Not Implemented
+|    | -- video_manager_test.py # Not Implemented
 | -- .gitignore
 | -- .pre-commit-config.yaml  # pre-commit-hooks action config file
 | -- README.md
-| -- Repose_Prototype.py  # Current working prototype file
+| -- Repose_Prototype.py  # Old Prototype File (Legacy)
 ```
 
 ## Run the Reposte Prototype
 1. Ensure packages are installed
-    - pip install PyQt6 imageio imageio-ffmpeg
+    - pip install PyQt6 imageio imageio-ffmpeg==0.4.5
 2. Run program
     - python reposte_prototype.py
-
-
-## Assignment 5: CI/CD Python Package
-All files for Assignment 5 can be found in the python_package_exercise folder.
-
