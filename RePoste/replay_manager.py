@@ -10,6 +10,7 @@ from typing import Callable, Optional
 
 logger = logging.getLogger()
 
+
 class ReplayManager:
     def __init__(self, fps: int, buffer: deque, output_dir: str):
         self.fps = fps
@@ -22,7 +23,9 @@ class ReplayManager:
         self.update_callback = None
         self.replay_speed = 1.0  # Default replay speed
 
-    def start_in_app_replay(self, update_callback: Optional[Callable[[QPixmap], None]] = None):
+    def start_in_app_replay(
+        self, update_callback: Optional[Callable[[QPixmap], None]] = None
+    ):
         if self.replaying:
             self.stop_in_app_replay()
 
@@ -36,11 +39,16 @@ class ReplayManager:
             logger.warning("No frames in buffer to replay.")
             return
 
-        logger.info(f"Starting in-app replay of {len(self.replay_frames)} frames.")
+        logger.info(
+            f"Starting in-app replay of {len(self.replay_frames)} frames."
+        )
         self.show_replay_frame()
 
     def show_replay_frame(self):
-        if not self.replaying and (self.replay_index < 0 or self.replay_index >= len(self.replay_frames)):
+        if not self.replaying and (
+            self.replay_index < 0
+            or self.replay_index >= len(self.replay_frames)
+        ):
             return
 
         frame = self.replay_frames[self.replay_index]
@@ -56,7 +64,9 @@ class ReplayManager:
             self.replay_timer = QTimer()
             self.replay_timer.setSingleShot(True)
             self.replay_timer.timeout.connect(self.show_replay_frame)
-            self.replay_timer.start(int(1000 / (self.fps * self.replay_speed)))
+            self.replay_timer.start(
+                int(1000 / (self.fps * self.replay_speed))
+            )
 
     def show_next_frame(self):
         if self.replaying:
