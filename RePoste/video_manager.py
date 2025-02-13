@@ -7,6 +7,7 @@ from collections import deque
 from datetime import datetime
 import logging
 from typing import Callable, Optional
+from replay_manager import ReplayManager
 
 # Configure logging
 logging.basicConfig(
@@ -35,15 +36,9 @@ class VideoRecorder:
         self.recording = False
         self.paused = False
         self.reader = None
-        self.replay_speed = 1.0  # Default replay speed
 
-        # For in-app replay
-        self.replaying = False
-        self.replay_frames = []
-        self.replay_index = 0
-        self.replay_timer = None
+        self.replay_manager = ReplayManager(fps, self.buffer, output_dir)
 
-        # Callback used both for live and replay display
         self.update_callback = None
 
         # Ensure output directory exists
@@ -73,7 +68,7 @@ class VideoRecorder:
             return
         try:
             frame = self.reader.get_next_data()
-            pixmap = self.convert_frame_to_pixmap(frame)
+            pixmap = self.replay_manager.convert_frame_to_pixmap(frame)
             self.update_callback(pixmap)
             self.buffer.append(frame)
             QTimer.singleShot(int(1000 / self.fps), self.capture_frame)
@@ -127,6 +122,7 @@ class VideoRecorder:
             duration (int): The new buffer duration in seconds.
         """
         self.buffer = deque(maxlen=self.fps * duration)
+        self.replay_manager.buffer = self.buffer
         logger.info(f"Buffer duration set to {duration} seconds.")
 
     def start_in_app_replay(
