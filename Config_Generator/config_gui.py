@@ -195,31 +195,3 @@ if __name__ == "__main__":
     window = Config_Generator()
     window.show()
     sys.exit(app.exec())
-
-    #     if sys.platform == "win32":
-    #         lines = output.split("\n")
-    #         for i in range(len(lines)):
-    #             line = lines[i].strip()
-
-    #             # When at cameras (video), go to next line for name
-    #             if "video" in line and i + 1 < len(lines):
-    #                 camera_name = lines[i + 1].strip()
-    #                 if '"' in camera_name:
-    #                     # Remove quotes from camera name
-    #                     camera_name = camera_name.split('"')[1]
-
-    #                 # Look for "Alternative name" (camera path)
-    #                 if (
-    #                     i + 2 < len(lines)
-    #                     and "Alternative name" in lines[i + 2]
-    #                 ):
-    #                     # Remove quotes from camera path
-    #                     camera_path = lines[i + 2].split('"')[1]
-    #                 else:
-    #                     camera_path = None
-
-    #                 cameras_list.append(
-    #                     {"name": camera_name, "path": camera_path}
-    #                 )
-
-    #         print(cameras_list)
