@@ -45,7 +45,7 @@ class Config_Generator(QWidget):
             """
         QWidget {
             background-color: #ffffff;
-            font-family: 'Lato', Arial, sans-serif;
+            font-family: 'Poppins', Arial, sans-serif;
             font-size: 14px;
             color: #333;
         }
@@ -79,7 +79,6 @@ class Config_Generator(QWidget):
             color: #fff;
             margin-top: 25px;
             border-radius: 6px;
-            font-weight: bold;
         }
 
         QPushButton:hover {
@@ -114,17 +113,21 @@ class Config_Generator(QWidget):
                 command, capture_output=True, text=True
             )
             output = command_result.stderr
-            print(output)
+            # print(output)
+
+            for line in output.split("/n"):
+                line = line.strip()
+                print(line)
+                # cameras.append(line)
 
             # if sys.platform == "win32":
 
         except Exception as e:
-            print(f"AYYY YO Command failed:\n {e}")
+            print(f"AYYY YO We Failed:\n {e}")
 
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
-    # app.setStyle("fusion")
     window = Config_Generator()
     window.show()
     sys.exit(app.exec())
