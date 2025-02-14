@@ -1,7 +1,8 @@
 import sys
+import os
 import subprocess
 import imageio_ffmpeg
-import re
+import json
 from PyQt6.QtCore import Qt
 from PyQt6.QtWidgets import (
     QApplication,
@@ -23,7 +24,12 @@ class Config_Generator(QWidget):
 
         gui_layout = QFormLayout()
 
-        all_cameras = self.Get_Cameras()
+        # Get all cameras on device
+        self.all_cameras = self.Get_Cameras()
+
+        # Add cameras to dropdown
+        for camera in self.all_cameras:
+            self.cam_combo_box.addItem(camera["name"])
 
         # NOTE: Add back if window size is not fixed. Will expand dropdowns to
         # fill the window
@@ -35,6 +41,7 @@ class Config_Generator(QWidget):
         # )
 
         self.generate_button = QPushButton("Generate Config")
+        self.generate_button.clicked.connect(self.Generate_Config)
 
         gui_layout.addRow("Select camera", self.cam_combo_box)
         gui_layout.addRow("Select microphone", self.audio_combo_box)
@@ -96,6 +103,7 @@ class Config_Generator(QWidget):
         cameras_list = []
         # TODO: Add Mac command later
         try:
+            video_devices_found = False
             ffmpeg_path = imageio_ffmpeg.get_ffmpeg_exe()
             # print(f"FFmpeg path: {ffmpeg_path}")
 
@@ -114,11 +122,10 @@ class Config_Generator(QWidget):
                 command, capture_output=True, text=True
             )
             output = command_result.stderr
-            print(output)
+            # print(output)
 
-            video_devices_found = False
+            # Go through each line and extract camera info
             lines = output.split("\n")
-
             for i, line in enumerate(lines):
                 # Check for DirectShow video devices section in ffmpeg
                 if "DirectShow video devices" in line:
@@ -146,10 +153,41 @@ class Config_Generator(QWidget):
                     # When at "DirectShow audio devices", stop processing
                     if "DirectShow audio devices" in line:
                         break
-            print(cameras_list)
+            # print(cameras_list)
 
         except Exception as e:
             print(f"Failed to get cameras:\n {e}")
+        return cameras_list
+
+    def Generate_Config(self):
+        # Get the selected camera
+        selected_camera_name = self.cam_combo_box.currentText()
+
+        # Find the camera data in the list
+        selected_camera = next(
+            (
+                camera
+                for camera in self.all_cameras
+                if camera["name"] == selected_camera_name
+            ),
+            None,
+        )
+
+        if selected_camera:
+            # Get the camera path
+            camera_data = {
+                "name": selected_camera["name"],
+                "camera_path": selected_camera["camera_path"],
+            }
+
+            # Create a config file and write the camera data to it
+            config_file_path = os.path.join(os.getcwd(), "camera_config.json")
+            with open(config_file_path, "w") as config_file:
+                json.dump(camera_data, config_file, indent=4)
+
+            print(f"Config file saved at: {config_file_path}")
+        else:
+            print("Selected camera not found.")
 
 
 if __name__ == "__main__":
