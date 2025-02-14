@@ -1,6 +1,7 @@
 import sys
 import subprocess
 import imageio_ffmpeg
+import re
 from PyQt6.QtCore import Qt
 from PyQt6.QtWidgets import (
     QApplication,
@@ -92,11 +93,11 @@ class Config_Generator(QWidget):
         )
 
     def Get_Cameras(self):
-        cameras = []
+        cameras_list = []
         # TODO: Add Mac command later
         try:
             ffmpeg_path = imageio_ffmpeg.get_ffmpeg_exe()
-            print(f"FFmpeg path: {ffmpeg_path}")
+            # print(f"FFmpeg path: {ffmpeg_path}")
 
             if sys.platform == "win32":
                 command = [
@@ -113,17 +114,42 @@ class Config_Generator(QWidget):
                 command, capture_output=True, text=True
             )
             output = command_result.stderr
-            # print(output)
+            print(output)
 
-            for line in output.split("/n"):
-                line = line.strip()
-                print(line)
-                # cameras.append(line)
+            video_devices_found = False
+            lines = output.split("\n")
 
-            # if sys.platform == "win32":
+            for i, line in enumerate(lines):
+                # Check for DirectShow video devices section in ffmpeg
+                if "DirectShow video devices" in line:
+                    video_devices_found = True
+                    continue
+
+                if video_devices_found:
+                    # Find lines with camera names by ('"')
+                    # (may not be robust)
+                    if '"' in line:
+                        camera_name = line.split('"')[1]
+
+                        # Check the next line for the camera path
+                        if i + 1 < len(lines) and '"' in lines[i + 1]:
+                            camera_path = lines[i + 1].split('"')[1]
+
+                            # Append the camera info to the list
+                            cameras_list.append(
+                                {
+                                    "name": camera_name,
+                                    "camera_path": camera_path,
+                                }
+                            )
+
+                    # When at "DirectShow audio devices", stop processing
+                    if "DirectShow audio devices" in line:
+                        break
+            print(cameras_list)
 
         except Exception as e:
-            print(f"AYYY YO We Failed:\n {e}")
+            print(f"Failed to get cameras:\n {e}")
 
 
 if __name__ == "__main__":
@@ -131,3 +157,31 @@ if __name__ == "__main__":
     window = Config_Generator()
     window.show()
     sys.exit(app.exec())
+
+    #     if sys.platform == "win32":
+    #         lines = output.split("\n")
+    #         for i in range(len(lines)):
+    #             line = lines[i].strip()
+
+    #             # When at cameras (video), go to next line for name
+    #             if "video" in line and i + 1 < len(lines):
+    #                 camera_name = lines[i + 1].strip()
+    #                 if '"' in camera_name:
+    #                     # Remove quotes from camera name
+    #                     camera_name = camera_name.split('"')[1]
+
+    #                 # Look for "Alternative name" (camera path)
+    #                 if (
+    #                     i + 2 < len(lines)
+    #                     and "Alternative name" in lines[i + 2]
+    #                 ):
+    #                     # Remove quotes from camera path
+    #                     camera_path = lines[i + 2].split('"')[1]
+    #                 else:
+    #                     camera_path = None
+
+    #                 cameras_list.append(
+    #                     {"name": camera_name, "path": camera_path}
+    #                 )
+
+    #         print(cameras_list)
