@@ -15,23 +15,7 @@ class Config_Generator(QWidget):
     def __init__(self):
         super().__init__()
         self.setWindowTitle("Config Generator")
-        self.setFixedSize(400, 150)
-        self.setStyleSheet(
-            """
-            QWidget {
-                background-color: #808080;
-            }
-            QComboBox {
-                background-color: #636363;
-            }
-            QPushButton {
-                min-width: 100px;
-                min-height: 30px;
-                background-color: #636363;
-                margin-top: 30px;
-            }
-            """
-        )
+        self.setFixedSize(500, 160)
 
         self.cam_combo_box = QComboBox()
         self.audio_combo_box = QComboBox()
@@ -52,10 +36,61 @@ class Config_Generator(QWidget):
         self.generate_button = QPushButton("Generate Config")
 
         gui_layout.addRow("Select camera", self.cam_combo_box)
-        gui_layout.addRow("Select audio device", self.audio_combo_box)
+        gui_layout.addRow("Select microphone", self.audio_combo_box)
         gui_layout.addWidget(self.generate_button)
 
         self.setLayout(gui_layout)
+
+        self.setStyleSheet(
+            """
+        QWidget {
+            background-color: #ffffff;
+            font-family: 'Lato', Arial, sans-serif;
+            font-size: 14px;
+            color: #333;
+        }
+
+        QComboBox {
+            background-color: #f0f0f0;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+            padding: 5px;
+        }
+        
+        QComboBox:hover {
+            background-color: #e0e0e0;
+        }
+
+        QComboBox::drop-down {
+            border: none;
+            background: transparent;
+        }
+
+        QComboBox::down-arrow {
+            image: url(images/caret-down-solid.svg);
+            width: 18px;
+            height: 18px;
+        }
+
+        QPushButton {
+            min-width: 120px;
+            min-height: 35px;
+            background-color: #0078D4;
+            color: #fff;
+            margin-top: 25px;
+            border-radius: 6px;
+            font-weight: bold;
+        }
+
+        QPushButton:hover {
+            background-color: #005fa3;
+        }
+
+        QPushButton:pressed {
+            background-color: #004a82;
+        }
+        """
+        )
 
     def Get_Cameras(self):
         cameras = []
@@ -89,7 +124,7 @@ class Config_Generator(QWidget):
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
-    app.setStyle("fusion")
+    # app.setStyle("fusion")
     window = Config_Generator()
     window.show()
     sys.exit(app.exec())
