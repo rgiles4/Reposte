@@ -15,6 +15,7 @@ class Config_Generator(QWidget):
     def __init__(self):
         super().__init__()
         self.setWindowTitle("Config Generator")
+        self.setFixedSize(400, 150)
         self.setStyleSheet(
             """
             QWidget {
