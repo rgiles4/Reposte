@@ -3,7 +3,6 @@ import os
 import subprocess
 import imageio_ffmpeg
 import json
-from PyQt6.QtCore import Qt
 from PyQt6.QtWidgets import (
     QApplication,
     QWidget,
@@ -181,11 +180,17 @@ class Config_Generator(QWidget):
             }
 
             # Create a config file and write the camera data to it
-            config_file_path = os.path.join(os.getcwd(), "camera_config.json")
+            script_dir = os.path.dirname(os.path.abspath(__file__))
+            root_dir = os.path.abspath(os.path.join(script_dir, "../"))
+            config_dir = os.path.join(root_dir, "RePoste/config/")
+            os.makedirs(config_dir, exist_ok=True)
+            print(config_dir)
+
+            config_file_path = os.path.join(config_dir, "camera_config.json")
             with open(config_file_path, "w") as config_file:
                 json.dump(camera_data, config_file, indent=4)
 
-            print(f"Config file saved at: {config_file_path}")
+            # print(f"Config file saved at: {config_file_path}")
         else:
             print("Selected camera not found.")
 
