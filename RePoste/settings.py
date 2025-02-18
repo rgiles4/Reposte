@@ -27,11 +27,13 @@ class SettingsWindow(QDialog):
         form_layout = QFormLayout()
 
         # Camera Source
-        self.camera_label = QLabel(self.config.get("camera_source", "Unknown Camera"))
+        self.camera_label = QLabel(self.config.get("camera_source", 
+                                                   "Unknown Camera"))
         form_layout.addRow("Camera Source:", self.camera_label)
 
         # Microphone Source
-        self.microphone_label = QLabel(self.config.get("microphone_source", "Unknown Microphone"))
+        self.microphone_label = QLabel(self.config.get("microphone_source", 
+                                                       "Unknown Microphone"))
         form_layout.addRow("Microphone Source:", self.microphone_label)
 
         # Keybinds
@@ -44,7 +46,8 @@ class SettingsWindow(QDialog):
         form_layout.addRow("FPS Lock:", self.fps_label)
 
         # Buffer Duration
-        self.buffer_label = QLabel(str(len(self.video_recorder.buffer) // self.video_recorder.fps))
+        self.buffer_label = QLabel(str(len(self.video_recorder.buffer) //
+                                       self.video_recorder.fps))
         form_layout.addRow("Buffer Duration (sec):", self.buffer_label)
 
         layout.addLayout(form_layout)
@@ -64,7 +67,10 @@ class SettingsWindow(QDialog):
         return {}  # Return empty config if file doesn't exist
 
     def load_keybinds(self):
-        """Load keybinds from the config file (Currently using our discussed binds until I work with config file)"""
+        """
+        Load keybinds from the config file
+        (Currently using our discussed binds until I work with config file)
+        """
         keybinds = self.config.get("keybinds", {
             "Space": "Save Replay",
             "P": "Pause Recording",
@@ -76,4 +82,5 @@ class SettingsWindow(QDialog):
             "F11": "Toggle Fullscreen",
         })
 
-        return "\n".join([f"{key}: {action}" for key, action in keybinds.items()])
+        return "\n".join([f"{key}: {action}"
+                          for key, action in keybinds.items()])
