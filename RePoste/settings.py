@@ -11,14 +11,14 @@ class SettingsWindow(QDialog):
     keybinds, FPS, and buffer duration, by reading from a config file.
     """
 
-    CONFIG_FILE = "config.json"  # Path to store settings
+    CONFIG_FILE = "config.json"  # Path to config if config is named this
 
     def __init__(self, video_recorder):
         super().__init__()
         self.setWindowTitle("Settings")
         self.setFixedSize(400, 300)
 
-        self.video_recorder = video_recorder  # Pass the video recorder instance
+        self.video_recorder = video_recorder
 
         # Load config settings
         self.config = self.load_config()
@@ -26,15 +26,15 @@ class SettingsWindow(QDialog):
         layout = QVBoxLayout()
         form_layout = QFormLayout()
 
-        # Camera Source (from config)
+        # Camera Source
         self.camera_label = QLabel(self.config.get("camera_source", "Unknown Camera"))
         form_layout.addRow("Camera Source:", self.camera_label)
 
-        # Microphone Source (from config)
+        # Microphone Source
         self.microphone_label = QLabel(self.config.get("microphone_source", "Unknown Microphone"))
         form_layout.addRow("Microphone Source:", self.microphone_label)
 
-        # Keybinds (from config or default)
+        # Keybinds
         self.keybinds_label = QLabel(self.load_keybinds())
         self.keybinds_label.setWordWrap(True)
         form_layout.addRow("Keybinds:", self.keybinds_label)
@@ -64,7 +64,7 @@ class SettingsWindow(QDialog):
         return {}  # Return empty config if file doesn't exist
 
     def load_keybinds(self):
-        """Load keybinds from the config file or use default bindings."""
+        """Load keybinds from the config file (Currently using our discussed binds until I work with config file)"""
         keybinds = self.config.get("keybinds", {
             "Space": "Save Replay",
             "P": "Pause Recording",
