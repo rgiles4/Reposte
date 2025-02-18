@@ -44,34 +44,53 @@ def test_frame_update(create_app):
 
     # Assert that scaled_pixmap is actually a MagicMock and that the
     # return values are correct
-    assert isinstance(scaled_pixmap_passed, MagicMock), (
-        "scaled_pixmap is not a MagicMock")
+    assert isinstance(
+        scaled_pixmap_passed, MagicMock
+    ), "scaled_pixmap is not a MagicMock"
 
     # Check that the width and height methods return the correct values
-    assert scaled_pixmap_passed.width() == 1920, (
-        f"❌ Expected width to be 1920: {scaled_pixmap_passed.width()}"
-    )
-    assert scaled_pixmap_passed.height() == 1080, (
-        f"❌ Expected height to be 1080: {scaled_pixmap_passed.height()}"
-    )
+    assert (
+        scaled_pixmap_passed.width() == 1920
+    ), f"❌ Expected width to be 1920: {scaled_pixmap_passed.width()}"
+    assert (
+        scaled_pixmap_passed.height() == 1080
+    ), f"❌ Expected height to be 1080: {scaled_pixmap_passed.height()}"
 
     # Check the values are integers
-    assert isinstance(scaled_pixmap_passed.width(), int), (
-        f"❌ Expected an integer for width: {scaled_pixmap_passed.width()}"
-    )
-    assert isinstance(scaled_pixmap_passed.height(), int), (
-        f"❌ Expected an integer for height: {scaled_pixmap_passed.height()}"
-    )
+    assert isinstance(
+        scaled_pixmap_passed.width(), int
+    ), f"❌ Expected an integer for width: {scaled_pixmap_passed.width()}"
+    assert isinstance(
+        scaled_pixmap_passed.height(), int
+    ), f"❌ Expected an integer for height: {scaled_pixmap_passed.height()}"
 
     # Ensure the pixmap has positive dimensions
-    assert scaled_pixmap_passed.width() > 0, (
-        f"❌ Scaled pixmap has invalid width: {scaled_pixmap_passed.width()}"
-    )
-    assert scaled_pixmap_passed.height() > 0, (
-        f"❌ Scaled pixmap has invalid height: {scaled_pixmap_passed.height()}"
-    )
+    assert (
+        scaled_pixmap_passed.width() > 0
+    ), f"❌ Scaled pixmap has invalid width: {scaled_pixmap_passed.width()}"
+    assert (
+        scaled_pixmap_passed.height() > 0
+    ), f"❌ Scaled pixmap has invalid height: {scaled_pixmap_passed.height()}"
 
     print("✅ update_frame() successfully updated the video feed!")
+
+def test_open_settings_window(mocker):
+    # Arrange
+    window = MainWindow()
+    
+    # Mock the instantiation of SettingsWindow
+    mock_settings_window = mocker.patch("RePoste.gui.SettingsWindow", autospec=True)
+    instance = mock_settings_window.return_value  # Mocked instance
+
+    # Act
+    window.open_settings_window()
+
+    # Assert
+    mock_settings_window.assert_called_once()  # Ensure SettingsWindow was instantiated
+    instance.exec.assert_called_once()  # Ensure exec() was called
+
+    print("✅ open_settings_window() successfully opened the settings menu!")
+
 
 
 # Parameters for test_keyPressEvent
@@ -94,8 +113,9 @@ def test_keyPressEvent(key, method):
     window.recorder = MagicMock()
 
     # QKeyEvent for Key Press
-    event = QKeyEvent(QKeyEvent.Type.KeyPress, key,
-                      Qt.KeyboardModifier.NoModifier)
+    event = QKeyEvent(
+        QKeyEvent.Type.KeyPress, key, Qt.KeyboardModifier.NoModifier
+    )
 
     # Act
     window.keyPressEvent(event)
@@ -128,8 +148,9 @@ def test_keyPressEvent_setReplaySpeed(key, expected_speed):
     window.recorder = MagicMock()
 
     # Act
-    event = QKeyEvent(QKeyEvent.Type.KeyPress, key,
-                      Qt.KeyboardModifier.NoModifier)
+    event = QKeyEvent(
+        QKeyEvent.Type.KeyPress, key, Qt.KeyboardModifier.NoModifier
+    )
     window.keyPressEvent(event)
 
     # Assert ???
