@@ -78,7 +78,7 @@ def test_frame_update(create_app):
 def test_open_settings_window(mocker):
     # Arrange
     window = MainWindow()
-    
+
     # Mock the instantiation of SettingsWindow
     mock_settings_window = mocker.patch("RePoste.gui.SettingsWindow",
                                         autospec=True)
