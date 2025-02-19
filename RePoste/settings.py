@@ -11,7 +11,8 @@ class SettingsWindow(QDialog):
     keybinds, FPS, and buffer duration, by reading from a config file.
     """
 
-    CONFIG_FILE = "config.json"  # Path to config if config is named this
+    CONFIG_DIR = os.path.join(os.path.dirname(__file__), "config")
+    CONFIG_FILE = os.path.join(CONFIG_DIR, "camera_config.json")  # Adjust path
 
     def __init__(self, video_recorder):
         super().__init__()
@@ -27,11 +28,13 @@ class SettingsWindow(QDialog):
         form_layout = QFormLayout()
 
         # Camera Source
-        self.camera_label = QLabel(self.config.get("camera_source", "Unknown Camera"))
+        camera_name = self.config.get("name", "Unknown Camera")
+        camera_path = self.config.get("camera_path", "Unknown Path")
+        self.camera_label = QLabel(f"{camera_name} ({camera_path})")
         form_layout.addRow("Camera Source:", self.camera_label)
 
-        # Microphone Source
-        self.microphone_label = QLabel(self.config.get("microphone_source", "Unknown Microphone"))
+        # Microphone Source (If added to config)
+        self.microphone_label = QLabel(self.config.get("microphone", "Unknown Microphone"))
         form_layout.addRow("Microphone Source:", self.microphone_label)
 
         # Keybinds
@@ -44,7 +47,8 @@ class SettingsWindow(QDialog):
         form_layout.addRow("FPS Lock:", self.fps_label)
 
         # Buffer Duration
-        self.buffer_label = QLabel(str(len(self.video_recorder.buffer) // self.video_recorder.fps))
+        buffer_duration = len(self.video_recorder.buffer) // self.video_recorder.fps
+        self.buffer_label = QLabel(str(buffer_duration))
         form_layout.addRow("Buffer Duration (sec):", self.buffer_label)
 
         layout.addLayout(form_layout)
@@ -57,14 +61,14 @@ class SettingsWindow(QDialog):
         self.setLayout(layout)
 
     def load_config(self):
-        """Load configuration from a JSON file."""
+        """Load configuration from JSON file if it exists."""
         if os.path.exists(self.CONFIG_FILE):
             with open(self.CONFIG_FILE, "r") as file:
                 return json.load(file)
         return {}  # Return empty config if file doesn't exist
 
     def load_keybinds(self):
-        """Load keybinds from the config file (Currently using our discussed binds until I work with config file)"""
+        """Load keybinds from the config file (or defaults if missing)."""
         keybinds = self.config.get("keybinds", {
             "Space": "Save Replay",
             "P": "Pause Recording",
