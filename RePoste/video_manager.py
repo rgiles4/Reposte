@@ -7,7 +7,7 @@ from collections import deque
 from datetime import datetime
 import logging
 from typing import Callable, Optional
-from replay_manager import ReplayManager
+from RePoste.replay_manager import ReplayManager
 
 # Configure logging
 logging.basicConfig(
