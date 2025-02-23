@@ -34,7 +34,8 @@ class SettingsWindow(QDialog):
         form_layout.addRow("Camera Source:", self.camera_label)
 
         # Microphone Source (If added to config)
-        self.microphone_label = QLabel(self.config.get("microphone", "Unknown Microphone"))
+        self.microphone_label = QLabel(self.config.get("microphone",
+                                                       "Unknown Microphone"))
         form_layout.addRow("Microphone Source:", self.microphone_label)
 
         # Keybinds
@@ -47,7 +48,8 @@ class SettingsWindow(QDialog):
         form_layout.addRow("FPS Lock:", self.fps_label)
 
         # Buffer Duration
-        buffer_duration = len(self.video_recorder.buffer) // self.video_recorder.fps
+        buffer_duration = (len(self.video_recorder.buffer) //
+                           self.video_recorder.fps)
         self.buffer_label = QLabel(str(buffer_duration))
         form_layout.addRow("Buffer Duration (sec):", self.buffer_label)
 
@@ -80,4 +82,5 @@ class SettingsWindow(QDialog):
             "F11": "Toggle Fullscreen",
         })
 
-        return "\n".join([f"{key}: {action}" for key, action in keybinds.items()])
+        return "\n".join([f"{key}: {action}" for key, action
+                          in keybinds.items()])

@@ -4,6 +4,7 @@ from RePoste.settings import SettingsWindow
 from RePoste.video_manager import VideoRecorder
 from RePoste.gui import MainWindow  # Add this import
 
+
 @pytest.fixture(scope="module")
 def create_app():
     return QApplication([])

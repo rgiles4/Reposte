@@ -1,6 +1,5 @@
 import os
 import pytest
-import imageio
 from unittest.mock import MagicMock, patch
 from PyQt6.QtCore import QTimer
 from datetime import datetime

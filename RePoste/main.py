@@ -2,7 +2,7 @@ import sys
 from PyQt6.QtWidgets import QApplication
 
 # from RePoste.gui import MainWindow for tests
-from gui import MainWindow
+from RePoste.gui import MainWindow
 
 
 def main():

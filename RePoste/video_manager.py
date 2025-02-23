@@ -32,9 +32,9 @@ class VideoRecorder:
             output_dir (str): Directory to save replays.
         """
         self.fps = fps
-        self.buffer = deque(
-        [np.zeros((480, 640, 3), dtype=np.uint8)] * (fps * buffer_duration),
-        maxlen=fps * buffer_duration)
+        self.buffer = deque([np.zeros((480, 640, 3), dtype=np.uint8)] *
+                            (fps * buffer_duration), maxlen=fps *
+                            buffer_duration)
         self.output_dir = output_dir
         self.recording = False
         self.paused = False
@@ -59,7 +59,8 @@ class VideoRecorder:
                 # Try initializing with imageio first
                 self.reader = imageio.get_reader("<video0>", "ffmpeg")
                 test_frame = self.reader.get_next_data()  # Ensure it's working
-                logger.info("Successfully initialized video reader with imageio.")
+                logger.info(
+                    "Successfully initialized video reader with imageio.")
             except Exception as e:
                 logger.warning(f"imageio failed, switching to OpenCV: {e}")
                 self.reader = None  # Reset reader
@@ -68,11 +69,17 @@ class VideoRecorder:
             if not self.reader:
                 self.cap = cv2.VideoCapture(0)
                 if not self.cap.isOpened():
-                    logger.error("No available camera found. Ensure your camera is connected and not in use.")
+                    logger.error(
+                        """No available camera found. Ensure your camera is
+                        connected and not in use."""
+                    )
                     self.reader = None
                     return
                 else:
-                    logger.info("✅ Successfully initialized video capture with OpenCV.")
+                    logger.info(
+                        """✅ Successfully initialized
+                        video capture with OpenCV."""
+                        )
                     self.reader = self.cap  # Assign OpenCV capture as reader
 
             self.capture_frame()
@@ -80,7 +87,6 @@ class VideoRecorder:
         except Exception as e:
             logger.error(f"Error starting recording: {e}")
             self.recording = False
-
 
     def capture_frame(self):
         """Captures a single frame and updates the GUI."""
@@ -119,8 +125,6 @@ class VideoRecorder:
             self.reader = None  # reader is reset to None
         logger.info("Recording stopped.")
 
-
-
     def save_replay(self, filename: Optional[str] = None):
         """
         Saves the buffered frames as a video file.
@@ -152,8 +156,10 @@ class VideoRecorder:
             maxlen=self.fps * duration
         )
         self.replay_manager.buffer = self.buffer
-        logger.info(f"🛠 Buffer duration set to {duration} seconds. Buffer pre-filled with blank frames.")
-
+        logger.info(
+            f"""🛠 Buffer duration set to {duration} seconds.
+            Buffer pre-filled with blank frames."""
+            )
 
     def start_in_app_replay(
         self, update_callback: Optional[Callable[[QPixmap], None]] = None
