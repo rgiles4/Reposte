@@ -1,6 +1,7 @@
 import os
 import imageio
 import numpy as np
+import cv2
 from PyQt6.QtGui import QImage, QPixmap
 from PyQt6.QtCore import QTimer
 from collections import deque
@@ -31,7 +32,9 @@ class VideoRecorder:
             output_dir (str): Directory to save replays.
         """
         self.fps = fps
-        self.buffer = deque(maxlen=fps * buffer_duration)
+        self.buffer = deque(
+        [np.zeros((480, 640, 3), dtype=np.uint8)] * (fps * buffer_duration),
+        maxlen=fps * buffer_duration)
         self.output_dir = output_dir
         self.recording = False
         self.paused = False
@@ -45,22 +48,39 @@ class VideoRecorder:
         os.makedirs(output_dir, exist_ok=True)
 
     def start_recording(self, update_callback: Callable[[QPixmap], None]):
-        """
-        Starts capturing video and updating the GUI.
-        Args:
-            update_callback (Callable[[QPixmap], None]):
-            Function to update the video feed in the GUI.
-        """
+        """Starts capturing video and updating the GUI."""
         try:
             self.recording = True
             self.paused = False
-            self.reader = imageio.get_reader("<video0>", "ffmpeg")
             self.update_callback = update_callback
+            self.reader = None  # Reset reader
+
+            try:
+                # Try initializing with imageio first
+                self.reader = imageio.get_reader("<video0>", "ffmpeg")
+                test_frame = self.reader.get_next_data()  # Ensure it's working
+                logger.info("Successfully initialized video reader with imageio.")
+            except Exception as e:
+                logger.warning(f"imageio failed, switching to OpenCV: {e}")
+                self.reader = None  # Reset reader
+
+            # If imageio fails, try OpenCV instead
+            if not self.reader:
+                self.cap = cv2.VideoCapture(0)
+                if not self.cap.isOpened():
+                    logger.error("No available camera found. Ensure your camera is connected and not in use.")
+                    self.reader = None
+                    return
+                else:
+                    logger.info("✅ Successfully initialized video capture with OpenCV.")
+                    self.reader = self.cap  # Assign OpenCV capture as reader
+
             self.capture_frame()
             logger.info("Recording started.")
         except Exception as e:
             logger.error(f"Error starting recording: {e}")
             self.recording = False
+
 
     def capture_frame(self):
         """Captures a single frame and updates the GUI."""
@@ -92,8 +112,14 @@ class VideoRecorder:
         """Stops the recording."""
         self.recording = False
         if self.reader:
-            self.reader.close()
+            if isinstance(self.reader, cv2.VideoCapture):
+                self.reader.release()
+            else:
+                self.reader.close()
+            self.reader = None  # reader is reset to None
         logger.info("Recording stopped.")
+
+
 
     def save_replay(self, filename: Optional[str] = None):
         """
@@ -121,9 +147,13 @@ class VideoRecorder:
         Args:
             duration (int): The new buffer duration in seconds.
         """
-        self.buffer = deque(maxlen=self.fps * duration)
+        self.buffer = deque(
+            [np.zeros((480, 640, 3), dtype=np.uint8)] * (self.fps * duration),
+            maxlen=self.fps * duration
+        )
         self.replay_manager.buffer = self.buffer
-        logger.info(f"Buffer duration set to {duration} seconds.")
+        logger.info(f"🛠 Buffer duration set to {duration} seconds. Buffer pre-filled with blank frames.")
+
 
     def start_in_app_replay(
         self, update_callback: Optional[Callable[[QPixmap], None]] = None
