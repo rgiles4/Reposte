@@ -5,21 +5,22 @@ from PyQt6.QtWidgets import (
     QLabel,
     QVBoxLayout,
     QWidget,
-    QPushButton
+    QPushButton,
 )
 from PyQt6.QtCore import Qt, QSize
 from PyQt6.QtGui import QIcon
 
 # Use RePoste.video_manager for running tests
 
-from RePoste.video_manager import VideoRecorder
-from RePoste.settings import SettingsWindow
+from video_manager import VideoRecorder
+from settings import SettingsWindow
 
 
 class MainWindow(QMainWindow):
     """
     MainWindow is the primary GUI class for the video recorder application.
     """
+
     def __init__(self):
         super().__init__()
         self.setWindowTitle("RePoste")
@@ -40,9 +41,9 @@ class MainWindow(QMainWindow):
 
         # Settings button overlay
         self.settings_button = QPushButton()
-
-        # Prevent Space from triggering it
-        self.settings_button.setFocusPolicy(Qt.FocusPolicy.NoFocus)
+        self.settings_button.setFocusPolicy(
+            Qt.FocusPolicy.NoFocus
+        )  # Prevent Space from triggering it
         icon_path = os.path.abspath("../Reposte/images/cog-svgrepo-com.svg")
 
         # Find image from image path
@@ -64,8 +65,9 @@ class MainWindow(QMainWindow):
 
     def open_settings_window(self):
         """Open the settings window and pass video recorder settings."""
-        # Pass the video_recorder instance
-        settings_window = SettingsWindow(self.recorder)
+        settings_window = SettingsWindow(
+            self.recorder
+        )  # Pass the video_recorder instance
         settings_window.exec()
 
     def update_frame(self, pixmap):
@@ -99,8 +101,9 @@ class MainWindow(QMainWindow):
         elif key == Qt.Key.Key_0:
             self.recorder.set_replay_speed(1.0)
         elif Qt.Key.Key_1 <= key <= Qt.Key.Key_9:
-            self.recorder.set_replay_speed(round(
-                (key - Qt.Key.Key_0) * 0.1, 1))
+            self.recorder.set_replay_speed(
+                round((key - Qt.Key.Key_0) * 0.1, 1)
+            )
         elif key == Qt.Key.Key_Left:
             self.recorder.show_previous_frame()
         elif key == Qt.Key.Key_Right:
