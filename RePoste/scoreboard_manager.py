@@ -8,7 +8,7 @@ logger = logging.getLogger()
 
 # Official from SFS-Link Manual v1.2
 # SFS_Link[S/N]
-SFS_DEVICE_NAME = "SFS_Link" 
+SFS_DEVICE_NAME = "SFS_Link[047]"
 SFS_UUID = "6F000000-B5A3-F393-E0A9-E50E24DCCA9E"
 
 class ScoreboardManager(QObject):
