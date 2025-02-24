@@ -32,8 +32,7 @@ class VideoRecorder:
         """
         self.fps = fps
         self.buffer = deque(
-            [np.zeros((480, 640, 3), dtype=np.uint8)]
-            * (fps * buffer_duration),
+            [np.zeros((480, 640, 3), dtype=np.uint8)],
             maxlen=fps * buffer_duration,
         )
         self.output_dir = output_dir
@@ -54,11 +53,10 @@ class VideoRecorder:
             self.recording = True
             self.paused = False
             self.update_callback = update_callback
-            self.reader = None  # Reset reader
+            self.reader = None
 
             # Try initializing with imageio first
             self.reader = imageio.get_reader("<video0>", "ffmpeg")
-            test_frame = self.reader.get_next_data()  # Ensure it's working
             logger.info("Successfully initialized video reader with imageio.")
 
             self.capture_frame()
@@ -128,7 +126,7 @@ class VideoRecorder:
             duration (int): The new buffer duration in seconds.
         """
         self.buffer = deque(
-            [np.zeros((480, 640, 3), dtype=np.uint8)] * (self.fps * duration),
+            [np.zeros((480, 640, 3), dtype=np.uint8)],
             maxlen=self.fps * duration,
         )
         self.replay_manager.buffer = self.buffer
