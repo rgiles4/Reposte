@@ -6,9 +6,6 @@ from PyQt6.QtWidgets import (
     QVBoxLayout,
     QWidget,
     QPushButton,
-    QDialog,
-    QFormLayout,
-    QDialogButtonBox,
 )
 from PyQt6.QtCore import Qt, QSize
 from PyQt6.QtGui import QIcon
@@ -18,10 +15,12 @@ from PyQt6.QtGui import QIcon
 from video_manager import VideoRecorder
 from settings import SettingsWindow
 
+
 class MainWindow(QMainWindow):
     """
     MainWindow is the primary GUI class for the video recorder application.
     """
+
     def __init__(self):
         super().__init__()
         self.setWindowTitle("RePoste")
@@ -42,7 +41,9 @@ class MainWindow(QMainWindow):
 
         # Settings button overlay
         self.settings_button = QPushButton()
-        self.settings_button.setFocusPolicy(Qt.FocusPolicy.NoFocus)  # Prevent Space from triggering it
+        self.settings_button.setFocusPolicy(
+            Qt.FocusPolicy.NoFocus
+        )  # Prevent Space from triggering it
         icon_path = os.path.abspath("../Reposte/images/cog-svgrepo-com.svg")
 
         # Find image from image path
@@ -54,7 +55,7 @@ class MainWindow(QMainWindow):
         self.settings_button.setIconSize(QSize(32, 32))
         self.settings_button.setFixedSize(40, 40)
         self.settings_button.clicked.connect(self.open_settings_window)
-        
+
         # Add button
         self.layout.addWidget(self.settings_button)
 
@@ -64,7 +65,9 @@ class MainWindow(QMainWindow):
 
     def open_settings_window(self):
         """Open the settings window and pass video recorder settings."""
-        settings_window = SettingsWindow(self.recorder)  # Pass the video_recorder instance
+        settings_window = SettingsWindow(
+            self.recorder
+        )  # Pass the video_recorder instance
         settings_window.exec()
 
     def update_frame(self, pixmap):
@@ -98,7 +101,9 @@ class MainWindow(QMainWindow):
         elif key == Qt.Key.Key_0:
             self.recorder.set_replay_speed(1.0)
         elif Qt.Key.Key_1 <= key <= Qt.Key.Key_9:
-            self.recorder.set_replay_speed(round((key - Qt.Key.Key_0) * 0.1, 1)) 
+            self.recorder.set_replay_speed(
+                round((key - Qt.Key.Key_0) * 0.1, 1)
+            )
         elif key == Qt.Key.Key_Left:
             self.recorder.show_previous_frame()
         elif key == Qt.Key.Key_Right:
