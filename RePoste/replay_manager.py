@@ -30,7 +30,7 @@ class ReplayManager:
             self.stop_in_app_replay()
 
         self.replaying = True
-        self.replay_speed = 1.0  # Default replay speed
+        self.replay_speed = 1.0
         self.replay_index = 0
         self.replay_frames = list(self.buffer)
         self.update_callback = update_callback or self.update_callback
