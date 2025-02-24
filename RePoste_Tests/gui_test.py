@@ -74,6 +74,24 @@ def test_frame_update(create_app):
 
     print("✅ update_frame() successfully updated the video feed!")
 
+def test_open_settings_window(mocker):
+    # Arrange
+    window = MainWindow()
+    
+    # Mock the instantiation of SettingsWindow
+    mock_settings_window = mocker.patch("RePoste.gui.SettingsWindow", autospec=True)
+    instance = mock_settings_window.return_value  # Mocked instance
+
+    # Act
+    window.open_settings_window()
+
+    # Assert
+    mock_settings_window.assert_called_once()  # Ensure SettingsWindow was instantiated
+    instance.exec.assert_called_once()  # Ensure exec() was called
+
+    print("✅ open_settings_window() successfully opened the settings menu!")
+
+
 
 # Parameters for test_keyPressEvent
 @pytest.mark.parametrize(

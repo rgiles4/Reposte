@@ -1,4 +1,4 @@
 {
-    "name": "Logi C270 HD WebCam",
-    "camera_path": "@device_pnp_\\\\?\\usb#vid_046d&pid_0825&mi_00#6&11053712&4&0000#{65e8773d-8f56-11d0-a3b9-00a0c9223196}\\global"
+    "name": "USB2.0 HD UVC WebCam",
+    "camera_path": "@device_pnp_\\\\?\\usb#vid_13d3&pid_5463&mi_00#7&2d27d791&0&0000#{65e8773d-8f56-11d0-a3b9-00a0c9223196}\\global"
 }

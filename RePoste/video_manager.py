@@ -31,7 +31,10 @@ class VideoRecorder:
             output_dir (str): Directory to save replays.
         """
         self.fps = fps
-        self.buffer = deque(maxlen=fps * buffer_duration)
+        self.buffer = deque(
+            [np.zeros((480, 640, 3), dtype=np.uint8)],
+            maxlen=fps * buffer_duration,
+        )
         self.output_dir = output_dir
         self.recording = False
         self.paused = False
@@ -45,17 +48,17 @@ class VideoRecorder:
         os.makedirs(output_dir, exist_ok=True)
 
     def start_recording(self, update_callback: Callable[[QPixmap], None]):
-        """
-        Starts capturing video and updating the GUI.
-        Args:
-            update_callback (Callable[[QPixmap], None]):
-            Function to update the video feed in the GUI.
-        """
+        """Starts capturing video and updating the GUI."""
         try:
             self.recording = True
             self.paused = False
-            self.reader = imageio.get_reader("<video0>", "ffmpeg")
             self.update_callback = update_callback
+            self.reader = None
+
+            # Try initializing with imageio first
+            self.reader = imageio.get_reader("<video0>", "ffmpeg")
+            logger.info("Successfully initialized video reader with imageio.")
+
             self.capture_frame()
             logger.info("Recording started.")
         except Exception as e:
@@ -93,6 +96,7 @@ class VideoRecorder:
         self.recording = False
         if self.reader:
             self.reader.close()
+            # self.reader = None
         logger.info("Recording stopped.")
 
     def save_replay(self, filename: Optional[str] = None):
@@ -121,9 +125,14 @@ class VideoRecorder:
         Args:
             duration (int): The new buffer duration in seconds.
         """
-        self.buffer = deque(maxlen=self.fps * duration)
+        self.buffer = deque(
+            [np.zeros((480, 640, 3), dtype=np.uint8)],
+            maxlen=self.fps * duration,
+        )
         self.replay_manager.buffer = self.buffer
-        logger.info(f"Buffer duration set to {duration} seconds.")
+        logger.info(
+            f"🛠 Buffer duration set to {duration} seconds. Buffer pre-filled with blank frames."
+        )
 
     def start_in_app_replay(
         self, update_callback: Optional[Callable[[QPixmap], None]] = None
@@ -207,7 +216,7 @@ class VideoRecorder:
 
     def set_replay_speed(self, speed: float):
         """Sets the speed of the replay."""
-        self.replay_speed = speed
+        self.replay_speed = round(speed, 1)
         logger.info(f"Replay speed set to {speed}x.")
 
     def stop_in_app_replay(self, resume_live: bool = False):
