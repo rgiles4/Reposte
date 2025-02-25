@@ -12,8 +12,8 @@ from PyQt6.QtGui import QIcon
 
 # Use RePoste.video_manager for running tests
 
-from video_manager import VideoRecorder
-from settings import SettingsWindow
+from RePoste.video_manager import VideoRecorder
+from RePoste.settings import SettingsWindow
 
 
 class MainWindow(QMainWindow):

@@ -4,6 +4,7 @@ from PyQt6.QtWidgets import QApplication
 # from RePoste.gui import MainWindow for tests
 from RePoste.gui import MainWindow
 
+
 def main():
     app = QApplication([])
     window = MainWindow()
