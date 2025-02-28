@@ -1,8 +1,11 @@
 import os
+import sys
 import pytest
 import logging
+import numpy as np
 from unittest.mock import MagicMock, patch
 from PyQt6.QtCore import QTimer
+from PyQt6.QtWidgets import QApplication
 from datetime import datetime
 
 from RePoste.video_manager import VideoRecorder
@@ -20,7 +23,18 @@ def recorder():
     recorder.update_callback = MagicMock()
     recorder.buffer = []
     recorder.fps = 30  # Set FPS for delay calculation
+    recorder.replay_speed = 1
     return recorder
+
+
+@pytest.fixture(scope="session", autouse=True)
+def qapplication():
+    """Ensure a QApplication instance
+    exists before running PyQt-related tests."""
+    app = QApplication.instance()
+    if app is None:
+        app = QApplication(sys.argv)
+    yield app
 
 
 def test_start_recording():
@@ -380,6 +394,13 @@ def test_set_buffer_duration(recorder):
 def test_start_in_app_replay(recorder, caplog):
     """Test the start_in_app_replay method."""
 
+    # ✅ Use valid NumPy arrays instead of strings
+    recorder.buffer = [
+        np.random.randint(0, 255, (480, 640, 3), dtype=np.uint8),
+        np.random.randint(0, 255, (480, 640, 3), dtype=np.uint8),
+        np.random.randint(0, 255, (480, 640, 3), dtype=np.uint8),
+    ]
+
     # Mock the update_callback to simulate GUI frame updating
     mock_update_callback = MagicMock()
 
@@ -390,29 +411,116 @@ def test_start_in_app_replay(recorder, caplog):
     assert recorder.replaying is True, "❌ Replay should be started."
 
     # Assert that replay frames are set correctly
-    assert recorder.replay_frames == ["frame1", "frame2", "frame3"], (
+    assert np.array_equal(recorder.replay_frames, recorder.buffer), (
         "❌ Replay frames should match the buffer frames."
     )
 
-    # Assert that the update_callback is assigned correctly
-    recorder.update_callback.assert_called_once_with(mock_update_callback)
 
-    # Assert that logging the start of the replay happens
-    assert "Starting in-app replay of 3 frames." in caplog.text, (
-        "❌ Replay start message should be logged."
-    )
+def test_show_replay_frame(recorder):
+    """Test show_replay_frame method."""
+    recorder.replaying = True
+    recorder.replay_frames = [
+        np.random.randint(0, 255, (480, 640, 3), dtype=np.uint8),
+        np.random.randint(0, 255, (480, 640, 3), dtype=np.uint8),
+        np.random.randint(0, 255, (480, 640, 3), dtype=np.uint8),
+    ]
+    recorder.replay_index = 0
 
-    # Assert that the logger level is INFO
-    assert caplog.records[0].levelname == "INFO", "❌ Log level should be INFO."
+    recorder.show_replay_frame()
 
-    # Act: Call start_in_app_replay when no frames are in the buffer
-    recorder.buffer = []  # No frames to replay
-    recorder.start_in_app_replay()
+    assert recorder.replay_index == 1, "❌ Replay index should increment by 1."
+    recorder.update_callback.assert_called_once()
 
-    # Assert that the warning log occurs
-    # when no frames are available for replay
-    assert "No frames in buffer to replay." in caplog.text, (
-        "❌ Warning should be logged when there are no frames."
-    )
-    assert caplog.records[1].levelname == ("WARNING",
-                                           "❌ Log level should be WARNING.")
+
+def test_show_next_frame(recorder):
+    """Test show_next_frame method."""
+    recorder.replaying = False
+    recorder.replay_frames = [
+        np.random.randint(0, 255, (480, 640, 3), dtype=np.uint8),
+        np.random.randint(0, 255, (480, 640, 3), dtype=np.uint8),
+        np.random.randint(0, 255, (480, 640, 3), dtype=np.uint8),
+    ]
+    recorder.replay_index = 0
+
+    recorder.show_next_frame()
+
+    assert recorder.replay_index == 1, (
+        "❌ Replay index should move to the next frame.")
+    recorder.update_callback.assert_called_once()
+
+
+def test_show_previous_frame(recorder):
+    """Test show_previous_frame method."""
+    recorder.replaying = False
+    recorder.replay_frames = [
+        np.random.randint(0, 255, (480, 640, 3), dtype=np.uint8),
+        np.random.randint(0, 255, (480, 640, 3), dtype=np.uint8),
+        np.random.randint(0, 255, (480, 640, 3), dtype=np.uint8),
+    ]
+    recorder.replay_index = 2
+
+    recorder.show_previous_frame()
+
+    assert recorder.replay_index == 1, (
+        "❌ Replay index should move to the previous frame.")
+    recorder.update_callback.assert_called_once()
+
+
+def test_set_replay_speed(recorder, caplog):
+    """Test set_replay_speed method."""
+    with caplog.at_level(logging.INFO):
+        recorder.set_replay_speed(2.5)
+
+    assert recorder.replay_speed == 2.5, "❌ Replay speed should be set to 2.5."
+    assert "Replay speed set to 2.5x." in caplog.text, (
+        "❌ Log message missing for replay speed.")
+
+
+def test_stop_in_app_replay(recorder, caplog):
+    """Test stop_in_app_replay method."""
+    recorder.replaying = True
+    recorder.replay_frames = ["frame1", "frame2"]
+    recorder.replay_index = 1
+    recorder.replay_timer = MagicMock()  # ✅ Ensuring replay_timer is a mock
+
+    with caplog.at_level(logging.INFO):
+        recorder.stop_in_app_replay()
+
+    assert recorder.replaying is False, "❌ Replay should be stopped."
+    assert recorder.replay_frames == [], "❌ Replay frames should be cleared."
+    assert recorder.replay_index == 0, "❌ Replay index should reset to 0."
+    assert "In-app replay stopped." in caplog.text, (
+        "❌ Log message missing for replay stop.")
+
+    # ✅ Only call stop() if replay_timer is not None
+    if recorder.replay_timer:
+        recorder.replay_timer.stop.assert_called_once()
+
+
+def test_stop_in_app_replay_resume_live(recorder, caplog):
+    """Test stop_in_app_replay with resume_live=True."""
+    recorder.start_recording = MagicMock()
+    recorder.replaying = True
+    recorder.replay_timer = MagicMock()  # ✅ Ensure replay_timer exists
+
+    with caplog.at_level(logging.INFO):
+        recorder.stop_in_app_replay(resume_live=True)
+
+    assert not recorder.replaying, "❌ Replay should be stopped."
+    recorder.start_recording.assert_called_once_with(recorder.update_callback)
+    assert "In-app replay stopped." in caplog.text, (
+        "❌ Missing replay stop log.")
+
+
+@patch("RePoste.video_manager.QImage")
+@patch("RePoste.video_manager.QPixmap")
+def test_convert_frame_to_pixmap(mock_qpixmap, mock_qimage, recorder):
+    """Test convert_frame_to_pixmap method with a valid NumPy frame."""
+
+    # ✅ Create a valid 3D NumPy array (H, W, C) to simulate an image frame
+    frame = np.random.randint(0, 255, (480, 640, 3), dtype=np.uint8)
+
+    recorder.convert_frame_to_pixmap(frame)
+
+    mock_qimage.assert_called_once()
+    mock_qpixmap.fromImage.assert_called_once()

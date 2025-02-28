@@ -37,6 +37,7 @@ class VideoRecorder:
         self.output_dir = output_dir
         self.recording = False
         self.paused = False
+        self.replay_speed = 1
         # self.reader = None
 
         self.replay_manager = ReplayManager(fps, self.buffer, output_dir)
@@ -123,11 +124,12 @@ class VideoRecorder:
             duration (int): The new buffer duration in seconds.
         """
         self.buffer = deque(
-            maxlen=self.fps * duration,
+            [None] * (self.fps * duration), maxlen=self.fps * duration
         )
         self.replay_manager.buffer = self.buffer
         logger.info(
-            f"🛠 Buffer duration set to {duration} seconds. Buffer pre-filled with blank frames."
+            f"""🛠 Buffer duration set to {duration} seconds.
+            Buffer pre-filled with blank frames."""
         )
 
     def start_in_app_replay(

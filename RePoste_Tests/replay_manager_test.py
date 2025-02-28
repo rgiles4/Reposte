@@ -1,4 +1,3 @@
-'''
 import pytest
 import numpy as np
 import os
@@ -38,17 +37,35 @@ def test_initialization(replay_manager, sample_buffer, output_dir):
 
 
 def test_start_in_app_replay(replay_manager):
+    # Ensure replay_frames is populated with mock data
+    replay_manager.replay_frames = [np.random.randint(
+        0, 255, (480, 640, 3), dtype=np.uint8) for _ in range(5)]
+    replay_manager.buffer = replay_manager.replay_frames.copy()
+
+    # Start the replay
     replay_manager.start_in_app_replay()
+
+    # Ensure replay state is correctly initialized
     assert replay_manager.replaying
     assert replay_manager.replay_index == 0
     assert len(replay_manager.replay_frames) == len(replay_manager.buffer)
 
 
 def test_stop_in_app_replay(replay_manager):
+    # Ensure replay_frames is populated with mock data
+    replay_manager.replay_frames = [np.random.randint(
+        0, 255, (480, 640, 3), dtype=np.uint8) for _ in range(3)]
+    replay_manager.buffer = replay_manager.replay_frames.copy()
+
+    # Start the replay
     replay_manager.start_in_app_replay()
+
+    # Stop the replay
     replay_manager.stop_in_app_replay()
+
+    # Ensure replay state is correctly cleaned up
     assert not replay_manager.replaying
-    assert replay_manager.replay_frames == []
+    assert replay_manager.replay_frames == []  # Ensure frames are cleared
     assert replay_manager.replay_index == 0
 
 
@@ -58,17 +75,37 @@ def test_set_replay_speed(replay_manager):
 
 
 def test_show_next_frame(replay_manager):
+    # Ensure replay_frames is populated with mock data
+    replay_manager.replay_frames = [np.random.randint(
+        0, 255, (480, 640, 3), dtype=np.uint8) for _ in range(5)]
+    replay_manager.buffer = replay_manager.replay_frames.copy()
     replay_manager.start_in_app_replay()
+
+    # Capture the initial index
     initial_index = replay_manager.replay_index
+
+    # Show next frame
     replay_manager.show_next_frame()
+
+    # Ensure index is updated correctly but not out of bounds
     assert replay_manager.replay_index == min(
         initial_index + 1, len(replay_manager.replay_frames) - 1)
 
 
 def test_show_previous_frame(replay_manager):
+    # Ensure replay_frames is populated with mock data
+    replay_manager.replay_frames = [np.random.randint(
+        0, 255, (480, 640, 3), dtype=np.uint8) for _ in range(3)]
+    replay_manager.buffer = replay_manager.replay_frames.copy()
     replay_manager.start_in_app_replay()
+
+    # Ensure starting from a valid index
     replay_manager.replay_index = 2
+
+    # Show previous frame
     replay_manager.show_previous_frame()
+
+    # Ensure index is correctly updated, but not out of bounds
     assert replay_manager.replay_index == 1
 
 
@@ -83,4 +120,3 @@ def test_convert_frame_to_pixmap(qapp, replay_manager, sample_buffer):
     frame = sample_buffer[0]
     pixmap = replay_manager.convert_frame_to_pixmap(frame)
     assert isinstance(pixmap, QPixmap)
-'''
