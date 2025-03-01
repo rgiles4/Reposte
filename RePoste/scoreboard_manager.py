@@ -9,7 +9,9 @@ logger = logging.getLogger()
 # Official from SFS-Link Manual v1.2
 # SFS_Link[S/N]
 SFS_DEVICE_NAME = "SFS_Link[047]"
-SFS_UUID = "6F000000-B5A3-F393-E0A9-E50E24DCCA9E"
+SFS_ADDRESS = "54:32:04:78:64:4A"
+SFS_UUID = "6f000009-b5a3-f393-e0a9-e50e24dcca9e"
+
 
 class ScoreboardManager(QObject):
     """
@@ -17,6 +19,7 @@ class ScoreboardManager(QObject):
     Runs the asyncio event loop in a background thread.
     Emits a PyQt signal whenever new scoreboard data arrives.
     """
+
     scoreboard_updated = pyqtSignal(dict)  # scoreboard info
 
     def __init__(self, parent=None):
@@ -59,55 +62,108 @@ class ScoreboardManager(QObject):
         self.loop = asyncio.new_event_loop()
         asyncio.set_event_loop(self.loop)
         try:
-            self.loop.run_until_complete(self._main_task())
+            self.loop.run_until_complete(
+                self._main_task(SFS_ADDRESS, SFS_UUID)
+            )
         except Exception as e:
             logger.error(f"Exception in scoreboard manager loop: {e}")
         finally:
             # The loop closes here
             self.loop.close()
 
-    async def _main_task(self):
-        """Scan, connect, subscribe to SFS-Link characteristic notifications."""
-        logger.info("ScoreboardManager: scanning for SFS-Link...")
-        found_device = None
+    async def _main_task(self, address, uuid):
+
         try:
-            devices = await BleakScanner.discover(timeout=5.0)
-            for d in devices:
-                if d.name and d.name.startswith(SFS_DEVICE_NAME):
-                    found_device = d
-                    break
+            # Create BleakClient instance
+            async with BleakClient(address) as client:
+                # Check if connected
+                if client.is_connected:
+                    print(f"Successfully connected to {address}")
+                    # Read the characteristic value using its UUID
+                    value = await client.read_gatt_char(uuid)
+                    print(f"Value of characteristic {uuid}: {value}")
+                else:
+                    print(f"Failed to connect to {address}")
         except Exception as e:
-            logger.error(f"BLE scan failed: {e}")
-            self.running = False
-            return
+            print(f"Error: {e}")
 
-        if not found_device:
-            logger.error("SFS-Link device not found. Stopping manager.")
-            self.running = False
-            return
+        # try:
+        #     # Create BleakClient instance
+        #     async with BleakClient(address) as client:
+        #         # Check if connected
+        #         if client.is_connected:
+        #             logger.info(f"Successfully connected to {address}")
 
-        logger.info(f"Found SFS-Link: {found_device.name} [{found_device.address}]")
-        self.client = BleakClient(found_device.address)
-        try:
-            await self.client.connect()
-            logger.info("Connected to SFS-Link!")
-            # Start notifications on the same UUID for characteristic
-            await self.client.start_notify(SFS_UUID, self._notification_handler)
+        #             # List all services and characteristics
+        #             # services = await client.get_services()
+        #             services = client.services
+        #             found = False  # Flag to track if the UUID is found
+        #             for service in services:
+        #                 logger.debug(f"Service UUID: {service.uuid}")
+        #                 for characteristic in service.characteristics:
+        #                     logger.debug(
+        #                         f"Characteristic UUID: {characteristic.uuid}"
+        #                     )
 
-            # Keep the loop alive while running
-            while self.running and self.client.is_connected:
-                await asyncio.sleep(1)
+        #                     # Check if this characteristic matches the one you're looking for
+        #                     if str(characteristic.uuid) == str(SFS_UUID):
+        #                         found = True
+        #                         logger.debug(
+        #                             f"Found characteristic: {characteristic.uuid}"
+        #                         )
+        #                         break
 
-            logger.info("ScoreboardManager: stopping notifications.")
-            await self.client.stop_notify(SFS_UUID)
+        #             if not found:
+        #                 logger.error(f"Characteristic {SFS_UUID} not found!")
+        #                 return
 
-        except Exception as e:
-            logger.error(f"Error connecting or receiving data: {e}")
-        finally:
-            if self.client and self.client.is_connected:
-                await self.client.disconnect()
-            self.running = False
-            logger.info("ScoreboardManager: disconnected and stopped.")
+        #         else:
+        #             logger.error(f"Failed to connect to {address}")
+
+        # except Exception as e:
+        #     logger.error(f"Error: {e}")
+
+        # self.client = BleakClient(address)
+        # try:
+        #     logger.debug("Attempting to connect to the SFS-Link device...")
+        #     await self.client.connect()
+        #     logger.info("Connected to SFS-Link!")
+
+        #     # Check if we are connected
+        #     if not self.client.is_connected:
+        #         logger.error("Failed to connect to the device.")
+        #         self.running = False
+        #         return
+
+        #     logger.debug(
+        #         f"Connected: {self.client.is_connected}, Address: {self.client.address}"
+        #     )
+
+        #     # Start notifications on the same UUID for characteristic
+        #     logger.debug(f"Subscribing to notifications for UUID: {SFS_UUID}")
+        #     await self.client.start_notify(
+        #         SFS_UUID, self._notification_handler
+        #     )
+        #     logger.debug("Notifications started successfully.")
+
+        #     # Keep the loop alive while running
+        #     while self.running and self.client.is_connected:
+        #         logger.debug("Awaiting notifications...")
+        #         await asyncio.sleep(1)
+
+        #     logger.info("ScoreboardManager: stopping notifications.")
+        #     await self.client.stop_notify(SFS_UUID)
+        #     logger.debug("Notifications stopped.")
+
+        # except Exception as e:
+        #     logger.error(f"Error connecting or receiving data: {e}")
+        # finally:
+        #     if self.client and self.client.is_connected:
+        #         logger.debug("Disconnecting from device...")
+        #         await self.client.disconnect()
+        #         logger.info("Disconnected from SFS-Link.")
+        #     self.running = False
+        #     logger.info("ScoreboardManager: stopped.")
 
     def _notification_handler(self, sender: int, data: bytearray):
         """
@@ -115,9 +171,11 @@ class ScoreboardManager(QObject):
         e.g. b'06125602140A38' => decode to "06 12 56 02 14 0A 38"
         """
         # Convert raw bytes to string
-        raw_str = data.decode('ascii', errors='ignore').strip()
+        raw_str = data.decode("ascii", errors="ignore").strip()
         if len(raw_str) != 14:
-            logger.warning(f"Unexpected scoreboard data len={len(raw_str)}: {raw_str}")
+            logger.warning(
+                f"Unexpected scoreboard data len={len(raw_str)}: {raw_str}"
+            )
             return
 
         # Check if it's "00000000000000" => means scoreboard not detected
@@ -144,7 +202,7 @@ class ScoreboardManager(QObject):
         """
         # break into 7 pairs, each 2 hex chars
         # e.g. "06125602140A38" => ["06","12","56","02","14","0A","38"]
-        hex_pairs = [hex_str[i:i+2] for i in range(0, 14, 2)]
+        hex_pairs = [hex_str[i : i + 2] for i in range(0, 14, 2)]
         if len(hex_pairs) != 7:
             return {}
 
@@ -163,19 +221,19 @@ class ScoreboardManager(QObject):
 
         # Map to Favero fields
         right_score = b2
-        left_score  = b3
-        seconds     = b4
-        minutes     = b5 & 0x0F # If Favero uses lower nibble for minutes
-        lamp_bits   = b6
-        match_bits  = b7
-        penalty     = b9
+        left_score = b3
+        seconds = b4
+        minutes = b5 & 0x0F  # If Favero uses lower nibble for minutes
+        lamp_bits = b6
+        match_bits = b7
+        penalty = b9
 
         return {
             "right_score": right_score,
-            "left_score":  left_score,
-            "seconds":     seconds,
-            "minutes":     minutes,
-            "lamp_bits":   lamp_bits,
-            "match_bits":  match_bits,
-            "penalty":     penalty,
+            "left_score": left_score,
+            "seconds": seconds,
+            "minutes": minutes,
+            "lamp_bits": lamp_bits,
+            "match_bits": match_bits,
+            "penalty": penalty,
         }
