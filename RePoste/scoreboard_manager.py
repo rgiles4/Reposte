@@ -12,6 +12,7 @@ SFS_DEVICE_NAME = "SFS_Link[047]"
 SFS_ADDRESS = "54:32:04:78:64:4A"
 SFS_UUID = "6f000009-b5a3-f393-e0a9-e50e24dcca9e"
 
+
 class ScoreboardManager(QObject):
     """
     Manages the BLE connection to the SFS-Link scoreboard.
@@ -61,6 +62,9 @@ class ScoreboardManager(QObject):
         self.loop = asyncio.new_event_loop()
         asyncio.set_event_loop(self.loop)
         try:
+            self.loop.run_until_complete(
+                self._main_task(SFS_ADDRESS, SFS_UUID)
+            )
             self.loop.run_until_complete(
                 self._main_task(SFS_ADDRESS, SFS_UUID)
             )
