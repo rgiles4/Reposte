@@ -28,10 +28,8 @@ class ScoreboardManager(QObject):
         self.thread = None
         self.client = None
         self.running = False
-
-        # Store scoreboard data in memory if needed
         self.current_data = {}
-
+        
     def start(self):
         """Launch the asyncio event loop in a background thread."""
         if self.thread and self.thread.is_alive():
@@ -43,7 +41,7 @@ class ScoreboardManager(QObject):
         self.thread.start()
 
     def stop(self):
-        # If already stopped, do nothing
+        """Stop the asyncio event loop and background thread."""
         if not self.running:
             return
 
@@ -55,57 +53,57 @@ class ScoreboardManager(QObject):
         self.thread = None
 
     async def _stop_async(self):
+        """Asynchronously disconnect the BLE client."""
         if self.client and self.client.is_connected:
             await self.client.disconnect()
 
     def _run_loop(self):
+        """Run the asyncio event loop."""
         self.loop = asyncio.new_event_loop()
         asyncio.set_event_loop(self.loop)
         try:
-            self.loop.run_until_complete(
-                self._main_task(SFS_ADDRESS, SFS_UUID)
-            )
-            self.loop.run_until_complete(
-                self._main_task(SFS_ADDRESS, SFS_UUID)
-            )
+            self.loop.run_until_complete(self._main_task(SFS_ADDRESS, SFS_UUID))
         except Exception as e:
-            logger.error(f"Exception in scoreboard manager loop: {e}")
+            logger.error(f"Exception in scoreboard manager loop: {e}", exc_info=True)
         finally:
-            # The loop closes here
             self.loop.close()
 
     async def _main_task(self, address, uuid):
-
+        """Main task to connect to the BLE device and read data."""
         try:
-            # Create BleakClient instance
             async with BleakClient(address) as client:
-                # Check if connected
                 if client.is_connected:
-                    print(f"Successfully connected to {address}")
-                    # Read the characteristic value using its UUID
-                    value = await client.read_gatt_char(uuid)
-                    print(f"Value of characteristic {uuid}: {value}")
+                    logger.info(f"Successfully connected to {address}")
+                    while self.running:
+                        await self._read_characteristic(client, uuid)
+                        await asyncio.sleep(0.01)  # Sleep for 100ms
                 else:
-                    print(f"Failed to connect to {address}")
+                    logger.error(f"Failed to connect to {address}")
         except Exception as e:
-            print(f"Error: {e}")
+            logger.error(f"Error in main task: {e}", exc_info=True)
+
+    async def _read_characteristic(self, client, uuid):
+        """Read the characteristic value using its UUID."""
+        print("Reading characteristic...")
+        try:
+            value = await client.read_gatt_char(uuid)
+            # logger.info(f"Value of characteristic {uuid}: {value}") # logger go brr
+            self._notification_handler(0, value)
+        except Exception as e:
+            logger.error(f"Error reading characteristic {uuid}: {e}", exc_info=True)
 
     def _notification_handler(self, sender: int, data: bytearray):
         """
+        Handle notifications from the BLE device.
         The data is a 14-char string of hex from the SFS-Link.
         e.g. b'06125602140A38' => decode to "06 12 56 02 14 0A 38"
         """
-        # Convert raw bytes to string
         raw_str = data.decode("ascii", errors="ignore").strip()
         if len(raw_str) != 14:
-            logger.warning(
-                f"Unexpected scoreboard data len={len(raw_str)}: {raw_str}"
-            )
+            logger.warning(f"Unexpected scoreboard data len={len(raw_str)}: {raw_str}")
             return
 
-        # Check if it's "00000000000000" => means scoreboard not detected
         if raw_str == "00000000000000":
-            # Optionally emit an empty scoreboard update or handle offline
             self.scoreboard_updated.emit({})
             return
 
@@ -115,50 +113,105 @@ class ScoreboardManager(QObject):
             self.scoreboard_updated.emit(parsed_data)
 
     def _parse_sfs_link_hex(self, hex_str: str) -> dict:
-        """
-        SFS-Link doc: 14 hex chars => 7 bytes: Favero bytes 2..7,9
-         Byte2 => Right Score
-         Byte3 => Left Score
-         Byte4 => Seconds
-         Byte5 => Minutes
-         Byte6 => Lamp bits
-         Byte7 => Match bits
-         Byte9 => Penalty bits
-        """
-        # break into 7 pairs, each 2 hex chars
-        # e.g. "06125602140A38" => ["06","12","56","02","14","0A","38"]
         hex_pairs = [hex_str[i : i + 2] for i in range(0, 14, 2)]
         if len(hex_pairs) != 7:
             return {}
 
-        # Convert each pair to an int
         try:
-            b2 = int(hex_pairs[0], 16)
-            b3 = int(hex_pairs[1], 16)
-            b4 = int(hex_pairs[2], 16)
-            b5 = int(hex_pairs[3], 16)
-            b6 = int(hex_pairs[4], 16)
-            b7 = int(hex_pairs[5], 16)
-            b9 = int(hex_pairs[6], 16)
+            
+            b2 = int(hex_pairs[0], 16)  # Right score (BCD)
+            b3 = int(hex_pairs[1], 16)  # Left score (BCD)
+            b4 = int(hex_pairs[2], 16)  # Seconds (BCD)
+            b5 = int(hex_pairs[3], 16)  # Minutes (BCD)
+            b6 = int(hex_pairs[4], 16)  # Lamp bits
+            b7 = int(hex_pairs[5], 16)  # Match bits
+            b9 = int(hex_pairs[6], 16)  # Penalty bits
         except ValueError as e:
             logger.error(f"Invalid hex in scoreboard data: {hex_str} => {e}")
             return {}
 
-        # Map to Favero fields
-        right_score = b2
-        left_score = b3
-        seconds = b4
-        minutes = b5 & 0x0F  # If Favero uses lower nibble for minutes
-        lamp_bits = b6
-        match_bits = b7
-        penalty = b9
+        # TRY IN LAB-> Decode the BCD fields
+        right_score = decode_bcd(b2)
+        left_score = decode_bcd(b3)
+        seconds = decode_bcd(b4)
+        minutes = decode_bcd(b5)
+        lamp_bits = parse_lamp_bits(b6)
+        match_bits = parse_matches_and_priorities(b7)
+        penalty = parse_penalty_bits(b9)    
 
-        return {
+        parsed_data = {
             "right_score": right_score,
-            "left_score": left_score,
-            "seconds": seconds,
-            "minutes": minutes,
-            "lamp_bits": lamp_bits,
-            "match_bits": match_bits,
-            "penalty": penalty,
+            "left_score":  left_score,
+            "seconds":     seconds,
+            "minutes":     minutes,
+            "lamp_bits":   lamp_bits,
+            "match_bits":  match_bits,
+            "penalty":     penalty,
         }
+        return(parsed_data)
+        #print(parsed_data) #TEST PRINT GO BRR
+
+
+#NEW FUNCTIONS TO TEST IN LAB   
+def decode_bcd(bcd: int) -> int:
+    """Decode a Binary-Coded Decimal (BCD) value."""
+    return (bcd >> 4) * 10 + (bcd & 0x0F)
+
+def parse_lamp_bits(b6: int) -> dict:
+    """
+    Parse 6th byte (b6) for lamp states.
+    Returns dictionary indicating which lamps are ON (True) or OFF (False).
+    """
+    return {
+        
+        "left_white": bool(b6 & 0x01),# D0
+        "right_white": bool(b6 & 0x02),# D1
+        "left_red": bool(b6 & 0x04), # D2
+        "right_green": bool(b6 & 0x08),  # D3
+        "right_yellow": bool(b6 & 0x10), # D4 
+        "left_yellow": bool(b6 & 0x20), # D5 
+        # D6 and D7 are not used
+    }
+
+def parse_matches_and_priorities(b7: int) -> dict:
+    """
+    Parse7th byte (b7) for num of matches and priority lamps.
+
+    b7 bits:
+      D0..D1 => number of matches (0..3)
+      D2 => right priority (1=ON)
+      D3 => left priority (1=ON)
+      D4..D7 => unused
+    """
+    # bits D0..D1 (mask 0b0011)
+    num_matches = b7 & 0x03 
+    # bit D2 (0b0100)
+    right_priority = bool(b7 & 0x04)  
+    # bit D3 (0b1000)
+    left_priority  = bool(b7 & 0x08)  
+
+    return {
+        "num_matches": num_matches,
+        "right_priority": right_priority,
+        "left_priority": left_priority
+    }
+
+def parse_penalty_bits(b9: int) -> dict:
+    """
+    Parse 9th byte for red/yellow penalty card lights.
+
+    Bits D0..D3 are:
+      D0 => Right Red
+      D1 => Left Red
+      D2 => Right Yellow
+      D3 => Left Yellow
+    Bits D4..D7 are ignored/unused as per doc.
+    """
+    return {
+        "penalty_right_red": bool(b9 & 0x01),# D0
+        "penalty_left_red": bool(b9 & 0x02), # D1
+        "penalty_right_yellow": bool(b9 & 0x04),  # D2
+        "penalty_left_yellow": bool(b9 & 0x08),# D3
+    }
+
+
