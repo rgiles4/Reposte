@@ -84,7 +84,7 @@ class ScoreboardManager(QObject):
 
     async def _read_characteristic(self, client, uuid):
         """Read the characteristic value using its UUID."""
-        print("Reading characteristic...")
+        # print("Reading characteristic...")
         try:
             value = await client.read_gatt_char(uuid)
             # logger.info(f"Value of characteristic {uuid}: {value}") # logger go brr
@@ -149,7 +149,7 @@ class ScoreboardManager(QObject):
             "penalty":     penalty,
         }
         return(parsed_data)
-        #print(parsed_data) #TEST PRINT GO BRR
+        # print(parsed_data) #TEST PRINT GO BRR
 
 
 #NEW FUNCTIONS TO TEST IN LAB   

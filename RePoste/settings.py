@@ -70,6 +70,7 @@ class SettingsWindow(QDialog):
     def load_keybinds(self):
         """Load keybinds from the config file (or defaults if missing)."""
         keybinds = self.config.get("keybinds", {
+            "ESC": "Close Program",
             "Space": "Save Replay",
             "P": "Pause Recording",
             "R": "Resume Recording",
@@ -77,7 +78,7 @@ class SettingsWindow(QDialog):
             "Down": "Stop In-App Replay",
             "Left": "Previous Frame",
             "Right": "Next Frame",
-            "F11": "Toggle Fullscreen",
+            "F11(Fn+F11)": "Toggle Fullscreen",
         })
 
         return "\n".join([f"{key}: {action}" for key, action in keybinds.items()])
