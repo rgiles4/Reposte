@@ -93,9 +93,14 @@ class ScoreboardManager(QObject):
             logger.error(f"Error reading characteristic {uuid}: {e}", exc_info=True)
 
     def _notification_handler(self, sender: int, data: bytearray):
-        """Handle incoming BLE scoreboard data and emit it as a signal."""
+        """
+        Handle notifications from the BLE device.
+        The data is a 14-char string of hex from the SFS-Link.
+        e.g. b'06125602140A38' => decode to "06 12 56 02 14 0A 38"
+        """
         raw_str = data.decode("ascii", errors="ignore").strip()
         if len(raw_str) != 14:
+            logger.warning(f"Unexpected scoreboard data len={len(raw_str)}: {raw_str}")
             return
 
         if raw_str == "00000000000000":
@@ -104,6 +109,7 @@ class ScoreboardManager(QObject):
 
         parsed_data = self._parse_sfs_link_hex(raw_str)
         if parsed_data:
+            self.current_data = parsed_data
             self.scoreboard_updated.emit(parsed_data)
 
     def _parse_sfs_link_hex(self, hex_str: str) -> dict:
