@@ -4,32 +4,26 @@ from PyQt6.QtWidgets import QApplication
 # from RePoste.gui import MainWindow for tests
 from gui import MainWindow
 from scoreboard_manager import ScoreboardManager
-
-#Lot of work needed: on_scoreboard_data.
-# For example, to detect touches:
-    # lamp_bits = data.get("lamp_bits", 0)
-    # left_white_on = bool(lamp_bits & 0x01)
-    # right_white_on = bool(lamp_bits & 0x02)
-    # if left_white_on or right_white_on:
-    #     print("Touch detected -- saving replay!")
-    #     window.recorder.save_replay()
-    #     window.recorder.start_in_app_replay()
-
-def on_scoreboard_data(data):
-    if not data:
-        print("Scoreboard offline or no data detected.")
-        return
-    print("Scoreboard updated:", data)
-
+        
+        
 if __name__ == "__main__":
+    # Initialize the QApplication
     app = QApplication([])
+
+    # Create an instance of ScoreboardManager and start it
     scoreboard_mgr = ScoreboardManager()
     scoreboard_mgr.start()
 
+    # Create and show the main window
     window = MainWindow()
     window.show()
 
+    # Connect the scoreboard_updated signal to the on_scoreboard_data function
     # scoreboard_mgr.scoreboard_updated.connect(on_scoreboard_data)
+
+    # Start the Qt event loop
     exit_code = app.exec()
+
+    # Stop the ScoreboardManager when the application exits
     scoreboard_mgr.stop()
     sys.exit(exit_code)
