@@ -69,18 +69,27 @@ class ScoreboardManager(QObject):
             self.loop.close()
 
     async def _main_task(self, address, uuid):
-        """Main task to connect to the BLE device and read data."""
+        """Main task to connect to the BLE device and read data at a controlled rate."""
         try:
             async with BleakClient(address) as client:
-                if client.is_connected:
-                    logger.info(f"Successfully connected to {address}")
-                    while self.running:
-                        await self._read_characteristic(client, uuid)
-                        await asyncio.sleep(0.01)  # Sleep for 100ms
-                else:
+                if not client.is_connected:
                     logger.error(f"Failed to connect to {address}")
+                    return
+
+                logger.info(f"Successfully connected to {address}")
+                while self.running and client.is_connected:
+                    try:
+                        value = await client.read_gatt_char(uuid)
+                        self._notification_handler(0, value)
+                    except Exception as read_err:
+                        logger.error(f"Error reading characteristic {uuid}: {read_err}", exc_info=True)
+                        # Break out of the loop if a read error occurs
+                        break
+                    # Increased sleep interval to reduce pressure on BLE read
+                    await asyncio.sleep(0.1)  # 100ms between reads
         except Exception as e:
             logger.error(f"Error in main task: {e}", exc_info=True)
+
 
     async def _read_characteristic(self, client, uuid):
         """Read the characteristic value using its UUID."""
@@ -130,7 +139,7 @@ class ScoreboardManager(QObject):
             logger.error(f"Invalid hex in scoreboard data: {hex_str} => {e}")
             return {}
 
-        # TRY IN LAB-> Decode the BCD fields
+        #Decode the BCD fields
         right_score = decode_bcd(b2)
         left_score = decode_bcd(b3)
         seconds = decode_bcd(b4)
@@ -151,8 +160,7 @@ class ScoreboardManager(QObject):
         return(parsed_data)
         #print(parsed_data) #TEST PRINT GO BRR
 
-
-#NEW FUNCTIONS TO TEST IN LAB   
+# Helper functions for parsing the SFS-Link data  
 def decode_bcd(bcd: int) -> int:
     """Decode a Binary-Coded Decimal (BCD) value."""
     return (bcd >> 4) * 10 + (bcd & 0x0F)
