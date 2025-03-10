@@ -54,14 +54,17 @@ class ScoreboardWidget(QWidget):
         self.trigger_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self.trigger_label.setStyleSheet("background-color: transparent; color: white; border-radius: 20px;")
 
-        self.red_card_overlay = QLabel()
-        self.red_card_overlay.setFixedSize(80, 80)
-        self.red_card_overlay.setStyleSheet("background-color: transparent; border-radius: 10px;")
+        # Yellow & Red Card Overlays with proper background colors
+        self.red_card_overlay = QLabel("Red Card")
+        self.red_card_overlay.setFixedSize(100, 50)
+        self.red_card_overlay.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.red_card_overlay.setStyleSheet("background-color: red; color: white; border-radius: 10px; font-size: 16px;")
         self.red_card_overlay.setVisible(False)
 
-        self.yellow_card_overlay = QLabel()
-        self.yellow_card_overlay.setFixedSize(80, 80)
-        self.yellow_card_overlay.setStyleSheet("background-color: transparent; border-radius: 10px;")
+        self.yellow_card_overlay = QLabel("Yellow Card")
+        self.yellow_card_overlay.setFixedSize(100, 50)
+        self.yellow_card_overlay.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.yellow_card_overlay.setStyleSheet("background-color: yellow; color: black; border-radius: 10px; font-size: 16px;")
         self.yellow_card_overlay.setVisible(False)
 
         score_layout = QHBoxLayout()
@@ -80,16 +83,18 @@ class ScoreboardWidget(QWidget):
 
         self.setLayout(final_layout)
 
+
     def update_from_data(self, data):
         if not data:
             return  # Prevent updating with empty data
+
         print(f"Updating scoreboard UI with data: {data}")
         
         self.left_score_label.setText(str(data.get("left_score", 0)))
         self.right_score_label.setText(str(data.get("right_score", 0)))
         self.timer_label.setText(f"{data.get('minutes', 0)}:{data.get('seconds', 0):02}")
         self.match_indicator.setText(str(data.get("match_bits", {}).get("num_matches", 1)))
-        
+
         lamp_bits = data.get("lamp_bits", {})
         if lamp_bits.get("left_white") or lamp_bits.get("right_white"):
             self.trigger_label.setText("W")
@@ -100,63 +105,18 @@ class ScoreboardWidget(QWidget):
         else:
             self.trigger_label.setText("")
             self.trigger_label.setStyleSheet("background-color: transparent;")
-        
+
+        # Correctly update red/yellow card visibility
         penalty = data.get("penalty", {})
         red_card_active = penalty.get("penalty_right_red", False) or penalty.get("penalty_left_red", False)
         yellow_card_active = penalty.get("penalty_right_yellow", False) or penalty.get("penalty_left_yellow", False)
-        
+
         self.red_card_overlay.setVisible(red_card_active)
         self.yellow_card_overlay.setVisible(yellow_card_active)
-        
+
+        # Ensure layout is updated properly
         self.repaint()
         self.update()
-        if not data:
-            return  # Prevent updating with empty data
-        
-        self.left_score_label.setText(str(data.get("left_score", 0)))
-        self.right_score_label.setText(str(data.get("right_score", 0)))
-        self.timer_label.setText(f"{data.get('minutes', 0)}:{data.get('seconds', 0):02}")
-        self.match_indicator.setText(str(data.get("match_bits", {}).get("num_matches", 1)))
-        
-        lamp_bits = data.get("lamp_bits", {})
-        if lamp_bits.get("left_white") or lamp_bits.get("right_white"):
-            self.trigger_label.setText("W")
-            self.trigger_label.setStyleSheet("background-color: white; color: black; border-radius: 20px;")
-        elif lamp_bits.get("left_red") or lamp_bits.get("right_green"):
-            self.trigger_label.setText("G")
-            self.trigger_label.setStyleSheet("background-color: green; color: white; border-radius: 20px;")
-        else:
-            self.trigger_label.setText("")
-            self.trigger_label.setStyleSheet("background-color: transparent;")
-        
-        penalty = data.get("penalty", {})
-        red_card_active = penalty.get("penalty_right_red", False) or penalty.get("penalty_left_red", False)
-        yellow_card_active = penalty.get("penalty_right_yellow", False) or penalty.get("penalty_left_yellow", False)
-        
-        self.red_card_overlay.setVisible(red_card_active)
-        self.yellow_card_overlay.setVisible(yellow_card_active)
-        
-        self.repaint()
-        self.update()
-        self.left_score_label.setText(str(data["left_score"]))
-        self.right_score_label.setText(str(data["right_score"]))
-        self.timer_label.setText(f"{data['minutes']}:{data['seconds']:02}")
-        self.match_indicator.setText(str(data["match_bits"]["num_matches"]))
-
-        if data["lamp_bits"]["left_white"] or data["lamp_bits"]["right_white"]:
-            self.trigger_label.setText("W")
-            self.trigger_label.setStyleSheet("background-color: white; color: black; border-radius: 20px;")
-        elif data["lamp_bits"]["left_red"] or data["lamp_bits"]["right_green"]:
-            self.trigger_label.setText("G")
-            self.trigger_label.setStyleSheet("background-color: green; color: white; border-radius: 20px;")
-        else:
-            self.trigger_label.setText("")
-            self.trigger_label.setStyleSheet("background-color: transparent;")
-
-        red_card_active = data["penalty"].get("penalty_right_red", False) or data["penalty"].get("penalty_left_red", False)
-        yellow_card_active = data["penalty"].get("penalty_right_yellow", False) or data["penalty"].get("penalty_left_yellow", False)
-        self.red_card_overlay.setVisible(red_card_active)
-        self.yellow_card_overlay.setVisible(yellow_card_active)
 
 class MainWindow(QMainWindow):
     def update_scoreboard(self, data):
@@ -207,7 +167,7 @@ class MainWindow(QMainWindow):
         self.scoreboard_manager = ScoreboardManager()
         self.scoreboard_manager.scoreboard_updated.connect(self.update_scoreboard)
         self.scoreboard_manager.start()
-
+    
     def keyPressEvent(self, event):
         key = event.key()
         if key == Qt.Key.Key_Escape:
