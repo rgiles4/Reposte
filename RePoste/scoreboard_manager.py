@@ -91,15 +91,15 @@ class ScoreboardManager(QObject):
             logger.error(f"Error in main task: {e}", exc_info=True)
 
 
-    async def _read_characteristic(self, client, uuid):
-        """Read the characteristic value using its UUID."""
-        print("Reading characteristic...")
-        try:
-            value = await client.read_gatt_char(uuid)
-            # logger.info(f"Value of characteristic {uuid}: {value}") # logger go brr
-            self._notification_handler(0, value)
-        except Exception as e:
-            logger.error(f"Error reading characteristic {uuid}: {e}", exc_info=True)
+    # async def _read_characteristic(self, client, uuid):
+    #     """Read the characteristic value using its UUID."""
+    #     print("Reading characteristic...")
+    #     try:
+    #         value = await client.read_gatt_char(uuid)
+    #         # logger.info(f"Value of characteristic {uuid}: {value}") # logger go brr
+    #         self._notification_handler(0, value)
+    #     except Exception as e:
+    #         logger.error(f"Error reading characteristic {uuid}: {e}", exc_info=True)
 
     def _notification_handler(self, sender: int, data: bytearray):
         """
