@@ -72,23 +72,27 @@ class ScoreboardManager(QObject):
         """Main task to connect to the BLE device and read data at a controlled rate."""
         try:
             async with BleakClient(address) as client:
+                self.client = client #Store the reference to the client
                 if not client.is_connected:
                     logger.error(f"Failed to connect to {address}")
                     return
 
                 logger.info(f"Successfully connected to {address}")
+                # Start notifications using your _notification_handler.
+                await client.start_notify(uuid, self._notification_handler)
+                logger.info("Notifications started.")
+
+                # Wait indefinitely while notifications are received.
                 while self.running and client.is_connected:
-                    try:
-                        value = await client.read_gatt_char(uuid)
-                        self._notification_handler(0, value)
-                    except Exception as read_err:
-                        logger.error(f"Error reading characteristic {uuid}: {read_err}", exc_info=True)
-                        # Break out of the loop if a read error occurs
-                        break
-                    # Increased sleep interval to reduce pressure on BLE read
-                    await asyncio.sleep(0.1)  # 100ms between reads
+                    await asyncio.sleep(1.0)
+
+                # Stop notifications before disconnecting.
+                await client.stop_notify(uuid)
+                logger.info("Notifications stopped.")
         except Exception as e:
             logger.error(f"Error in main task: {e}", exc_info=True)
+        finally:
+            self.client = None  # Clean up the client reference
 
 
     # async def _read_characteristic(self, client, uuid):
@@ -127,7 +131,6 @@ class ScoreboardManager(QObject):
             return {}
 
         try:
-            
             b2 = int(hex_pairs[0], 16)  # Right score (BCD)
             b3 = int(hex_pairs[1], 16)  # Left score (BCD)
             b4 = int(hex_pairs[2], 16)  # Seconds (BCD)
