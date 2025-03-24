@@ -49,5 +49,7 @@ The goal of this project is to create open-source video replay software that can
 ## Run the Reposte Prototype
 1. Ensure packages are installed
     - pip install PyQt6 imageio imageio-ffmpeg==0.4.5
+2. Change directory into Reposte folder
+    - cd .\RePoste\
 2. Run program
-    - python reposte_prototype.py
+    - python main.py
