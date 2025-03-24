@@ -29,17 +29,17 @@ The goal of this project is to create open-source video replay software that can
 |    | -- __init__.py
 |    | -- gui.py
 |    | -- main.py
-|    | -- replay_manager.py # Not Implemented
-|    | -- settings.py # Not Implemented
+|    | -- replay_manager.py
+|    | -- settings.py 
 |    | -- utils.py # Not Implemented
 |    | -- video_manager.py
 | -- RePoste_Tests/ # Unit Test Files
 |    | -- __init__.py
 |    | -- gui_test.py
 |    | -- main_test.py
-|    | -- replay_manager_test.py # Not Implemented
+|    | -- replay_manager_test.py
 |    | -- settings_test.py # Not Implemented
-|    | -- video_manager_test.py # Not Implemented
+|    | -- video_manager_test.py
 | -- .gitignore
 | -- .pre-commit-config.yaml  # pre-commit-hooks action config file
 | -- README.md
