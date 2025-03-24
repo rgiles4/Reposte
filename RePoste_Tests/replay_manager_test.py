@@ -54,24 +54,25 @@ def test_start_in_app_replay(qtbot, replay_manager):
 
 
 def test_stop_in_app_replay(replay_manager):
-    # Ensure replay_frames is populated with mock data
+    # Arrange
     replay_manager.replay_frames = [np.random.randint(
         0, 255, (480, 640, 3), dtype=np.uint8) for _ in range(3)]
     replay_manager.buffer = replay_manager.replay_frames.copy()
 
-    # Start the replay
+    # Act
+    # Start Replay
     try:
         replay_manager.start_in_app_replay()
     except Exception as e:
         pytest.fail(f"start_in_app_replay() raised an unexpected exception: {e}")
 
-    # Stop the replay safely
+    # Stop Replay
     try:
         replay_manager.stop_in_app_replay()
     except Exception as e:
         pytest.fail(f"stop_in_app_replay() raised an unexpected exception: {e}")
 
-    # Ensure replay state is correctly cleaned up
+    # Assert
     assert replay_manager.replaying is False, "Replaying flag should be False"
     assert isinstance(replay_manager.replay_frames, list), "replay_frames should be a list"
     assert replay_manager.replay_frames == [], "replay_frames should be empty after stopping"
@@ -79,53 +80,60 @@ def test_stop_in_app_replay(replay_manager):
 
 
 def test_set_replay_speed(replay_manager):
+    # Act
     replay_manager.set_replay_speed(2.0)
+
+    # Assert
     assert replay_manager.replay_speed == 2.0
 
 
 def test_show_next_frame(replay_manager):
-    # Ensure replay_frames is populated with mock data
+    # Arrange
     replay_manager.replay_frames = [np.random.randint(
         0, 255, (480, 640, 3), dtype=np.uint8) for _ in range(5)]
     replay_manager.buffer = replay_manager.replay_frames.copy()
     replay_manager.start_in_app_replay()
-
-    # Capture the initial index
     initial_index = replay_manager.replay_index
 
-    # Show next frame
+    # Act
     replay_manager.show_next_frame()
 
-    # Ensure index is updated correctly but not out of bounds
+    # Assert
     assert replay_manager.replay_index == min(
         initial_index + 1, len(replay_manager.replay_frames) - 1)
 
 
 def test_show_previous_frame(replay_manager):
-    # Ensure replay_frames is populated with mock data
+    # Arrange
     replay_manager.replay_frames = [np.random.randint(
         0, 255, (480, 640, 3), dtype=np.uint8) for _ in range(3)]
     replay_manager.buffer = replay_manager.replay_frames.copy()
     replay_manager.start_in_app_replay()
-
-    # Ensure starting from a valid index
     replay_manager.replay_index = 2
 
-    # Show previous frame
+    # Act
     replay_manager.show_previous_frame()
 
-    # Ensure index is correctly updated, but not out of bounds
+    # Assert
     assert replay_manager.replay_index == 1
 
 
 def test_save_replay(replay_manager):
+    # Arrange
     filename = "test_replay.mp4"
+
+    # Act
     replay_manager.save_replay(filename)
     output_path = os.path.join(replay_manager.output_dir, filename)
+
+    # Assert
     assert os.path.exists(output_path)
 
 
 def test_convert_frame_to_pixmap(qapp, replay_manager, sample_buffer):
+    # Act
     frame = sample_buffer[0]
     pixmap = replay_manager.convert_frame_to_pixmap(frame)
+
+    # Assert
     assert isinstance(pixmap, QPixmap)
