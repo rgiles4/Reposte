@@ -1,12 +1,10 @@
 import sys
 from PyQt6.QtWidgets import QApplication
-
-# from RePoste.gui import MainWindow for tests
 from RePoste.gui import MainWindow
-from scoreboard_manager import ScoreboardManager
+from RePoste.scoreboard_manager import ScoreboardManager
         
-        
-if __name__ == "__main__":
+
+def main():
     # Initialize the QApplication
     app = QApplication([])
 
@@ -27,3 +25,7 @@ if __name__ == "__main__":
     # Stop the ScoreboardManager when the application exits
     scoreboard_mgr.stop()
     sys.exit(exit_code)
+
+
+if __name__ == "__main__":
+    main()
