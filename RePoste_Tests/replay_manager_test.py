@@ -3,6 +3,7 @@ import numpy as np
 import os
 from collections import deque
 from PyQt6.QtGui import QPixmap
+from unittest.mock import MagicMock
 from RePoste.replay_manager import ReplayManager
 
 
@@ -36,19 +37,20 @@ def test_initialization(replay_manager, sample_buffer, output_dir):
     assert not replay_manager.replaying
 
 
-def test_start_in_app_replay(replay_manager):
-    # Ensure replay_frames is populated with mock data
+def test_start_in_app_replay(qtbot, replay_manager):
     replay_manager.replay_frames = [np.random.randint(
         0, 255, (480, 640, 3), dtype=np.uint8) for _ in range(5)]
     replay_manager.buffer = replay_manager.replay_frames.copy()
 
-    # Start the replay
-    replay_manager.start_in_app_replay()
+    mock_callback = MagicMock()
+    replay_manager.start_in_app_replay(update_callback=mock_callback)
 
-    # Ensure replay state is correctly initialized
+    qtbot.wait(100)  # Short delay to allow execution
+
     assert replay_manager.replaying
-    assert replay_manager.replay_index == 0
+    assert replay_manager.replay_index == 3
     assert len(replay_manager.replay_frames) == len(replay_manager.buffer)
+    mock_callback.assert_called()  # Ensure the callback was triggered
 
 
 def test_stop_in_app_replay(replay_manager):
@@ -58,15 +60,22 @@ def test_stop_in_app_replay(replay_manager):
     replay_manager.buffer = replay_manager.replay_frames.copy()
 
     # Start the replay
-    replay_manager.start_in_app_replay()
+    try:
+        replay_manager.start_in_app_replay()
+    except Exception as e:
+        pytest.fail(f"start_in_app_replay() raised an unexpected exception: {e}")
 
-    # Stop the replay
-    replay_manager.stop_in_app_replay()
+    # Stop the replay safely
+    try:
+        replay_manager.stop_in_app_replay()
+    except Exception as e:
+        pytest.fail(f"stop_in_app_replay() raised an unexpected exception: {e}")
 
     # Ensure replay state is correctly cleaned up
-    assert not replay_manager.replaying
-    assert replay_manager.replay_frames == []  # Ensure frames are cleared
-    assert replay_manager.replay_index == 0
+    assert replay_manager.replaying is False, "Replaying flag should be False"
+    assert isinstance(replay_manager.replay_frames, list), "replay_frames should be a list"
+    assert replay_manager.replay_frames == [], "replay_frames should be empty after stopping"
+    assert replay_manager.replay_index == 0, "replay_index should be reset to 0"
 
 
 def test_set_replay_speed(replay_manager):
