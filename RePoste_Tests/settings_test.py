@@ -35,8 +35,6 @@
 #         assert hasattr(window, "keyPressEvent"), (
 #             f"❌ {key} keybind function missing: {method}")
 
-#     print("✅ Keybind mapping test passed.")
-
 
 # def test_microphone_used(create_app):
 #     """
@@ -50,8 +48,6 @@
 #     else:
 #         print("⚠️ No microphone attribute found in VideoRecorder class.")
 
-#     print("✅ Microphone test (if implemented) passed.")
-
 
 # def test_fps_lock(create_app):
 #     """Test if FPS is locked at the correct value."""
@@ -61,4 +57,3 @@
 #     recorder.fps = 30
 #     assert recorder.fps == 30, f"❌ Expected FPS to be 30, got {recorder.fps}"
 
-#     print("✅ FPS lock test passed.")
