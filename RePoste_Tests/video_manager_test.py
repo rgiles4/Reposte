@@ -48,8 +48,9 @@ def test_start_recording():
     # Assert
     assert recorder.recording is True, "❌ Recording Flag should be True"
     assert recorder.paused is False, "❌ Paused Flag should be False"
-    assert recorder.update_callback == mock_update_callback, (
-        "❌ Update Callback should be assigned")
+    assert (
+        recorder.update_callback == mock_update_callback
+    ), "❌ Update Callback should be assigned"
     mock_reader.assert_called_once_with("<video0>", "ffmpeg")
 
 
@@ -79,14 +80,18 @@ def test_capture_frame_success(recorder):
         # Ensure frame retrieval
         recorder.reader.get_next_data.assert_called_once()
         # Ensure conversion
-        (recorder.replay_manager.convert_frame_to_pixmap
-         .assert_called_once_with(mock_frame))
+        (
+            recorder.replay_manager.convert_frame_to_pixmap.assert_called_once_with(
+                mock_frame
+            )
+        )
         # Ensure GUI update
         recorder.update_callback.assert_called_once_with(mock_pixmap)
 
         # Assert
-        assert recorder.buffer == [mock_frame], (
-            "❌ Frame should be stored in buffer")
+        assert recorder.buffer == [
+            mock_frame
+        ], "❌ Frame should be stored in buffer"
 
         # 1000 / 30 fps ≈ 33ms
         mock_timer.assert_called_once_with(33, recorder.capture_frame)
@@ -134,8 +139,9 @@ def test_capture_frame_exception_handling(recorder, caplog):
         recorder.capture_frame()
 
         # Assert
-        assert "Error capturing frame: Mocked error" in caplog.text, (
-            "❌ Exception should be logged")
+        assert (
+            "Error capturing frame: Mocked error" in caplog.text
+        ), "❌ Exception should be logged"
         recorder.update_callback.assert_not_called()
         assert recorder.buffer == [], "❌ Buffer should remain empty"
         mock_timer.assert_not_called()
@@ -150,8 +156,9 @@ def test_pause_recording(recorder, caplog):
 
     # Assert
     assert recorder.paused is True, "❌ Recording should be paused"
-    assert "Recording paused." in caplog.text, (
-        "❌ Pause message should be logged")
+    assert (
+        "Recording paused." in caplog.text
+    ), "❌ Pause message should be logged"
 
 
 def test_pause_recording_when_not_recording(recorder, caplog):
@@ -163,10 +170,12 @@ def test_pause_recording_when_not_recording(recorder, caplog):
     recorder.pause_recording()
 
     # Assert
-    assert recorder.paused is False, (
-        "❌ Paused flag should remain False when not recording")
-    assert "Recording paused." not in caplog.text, (
-        "❌ Pause message should not be logged")
+    assert (
+        recorder.paused is False
+    ), "❌ Paused flag should remain False when not recording"
+    assert (
+        "Recording paused." not in caplog.text
+    ), "❌ Pause message should not be logged"
 
 
 def test_resume_recording(recorder, caplog):
@@ -182,14 +191,16 @@ def test_resume_recording(recorder, caplog):
     # Assert
     assert recorder.paused is False, "❌ Recording should be resumed"
     recorder.capture_frame.assert_called_once(), (
-        "❌ capture_frame should be called")
-    assert "Recording resumed." in caplog.text, (
-        "❌ Resume message should be logged")
+        "❌ capture_frame should be called"
+    )
+    assert (
+        "Recording resumed." in caplog.text
+    ), "❌ Resume message should be logged"
 
 
 def test_resume_recording_when_not_paused(recorder, caplog):
-    # Arrange 
-    caplog.set_level("INFO") # Set the log level to INFO
+    # Arrange
+    caplog.set_level("INFO")  # Set the log level to INFO
     recorder.recording = True
     recorder.paused = False
     recorder.capture_frame = MagicMock()
@@ -200,14 +211,16 @@ def test_resume_recording_when_not_paused(recorder, caplog):
     # Assert
     assert recorder.paused is False, "❌ Recording should remain active"
     recorder.capture_frame.assert_not_called(), (
-        "❌ capture_frame should not be called")
-    assert "Recording resumed." not in caplog.text, (
-        "❌ Resume message should not be logged")
+        "❌ capture_frame should not be called"
+    )
+    assert (
+        "Recording resumed." not in caplog.text
+    ), "❌ Resume message should not be logged"
 
 
 def test_resume_recording_when_not_recording(recorder, caplog):
     # Arrange
-    caplog.set_level("INFO") # Set the log level to INFO
+    caplog.set_level("INFO")  # Set the log level to INFO
     recorder.recording = False
     recorder.paused = True
     recorder.capture_frame = MagicMock()
@@ -216,12 +229,15 @@ def test_resume_recording_when_not_recording(recorder, caplog):
     recorder.resume_recording()
 
     # Assert
-    assert recorder.paused is True, (
-        "❌ Paused should remain True when not recording")
+    assert (
+        recorder.paused is True
+    ), "❌ Paused should remain True when not recording"
     recorder.capture_frame.assert_not_called(), (
-        "❌ capture_frame should not be called")
-    assert "Recording resumed." not in caplog.text, (
-        "❌ Resume message should not be logged")
+        "❌ capture_frame should not be called"
+    )
+    assert (
+        "Recording resumed." not in caplog.text
+    ), "❌ Resume message should not be logged"
 
 
 def test_stop_recording(recorder, caplog):
@@ -236,14 +252,16 @@ def test_stop_recording(recorder, caplog):
     # Assert
     assert recorder.recording is False, "❌ Recording should be stopped"
     recorder.reader.close.assert_called_once(), (
-        "❌ reader.close() should be called")
-    assert "Recording stopped." in caplog.text, (
-        "❌ Stop message should be logged")
+        "❌ reader.close() should be called"
+    )
+    assert (
+        "Recording stopped." in caplog.text
+    ), "❌ Stop message should be logged"
 
 
 def test_stop_recording_when_already_stopped(recorder, caplog):
     # Arrange
-    caplog.set_level("INFO") # Set the log level to INFO
+    caplog.set_level("INFO")  # Set the log level to INFO
     recorder.recording = False
     recorder.reader = MagicMock()
 
@@ -254,19 +272,21 @@ def test_stop_recording_when_already_stopped(recorder, caplog):
     assert recorder.recording is False, "❌ Recording should remain stopped"
     if recorder.reader:
         recorder.reader.close.assert_called_once()
-    assert caplog.text.count("Recording stopped.") <= 1, (
-        "❌ Stop message should not be logged multiple times")
+    assert (
+        caplog.text.count("Recording stopped.") <= 1
+    ), "❌ Stop message should not be logged multiple times"
 
 
 # TODO: LOGGER ERROR WITH CAPLOG
 def test_save_replay(recorder):
     # Arrange
-    logging.basicConfig(level=logging.INFO) # Config the log level to INFO
+    logging.basicConfig(level=logging.INFO)  # Config the log level to INFO
     mock_writer = MagicMock()
 
     # Act
-    with patch("imageio.get_writer",
-               return_value=mock_writer) as mock_get_writer:
+    with patch(
+        "imageio.get_writer", return_value=mock_writer
+    ) as mock_get_writer:
         timestamp = "2025-02-18_12-30-00"
 
         with patch("RePoste.video_manager.datetime") as mock_datetime:
@@ -276,10 +296,12 @@ def test_save_replay(recorder):
 
             # Assert
             expected_filename = f"replay_{timestamp}.mp4"
-            expected_path = os.path.join(recorder.output_dir,
-                                         expected_filename)
-            mock_get_writer.assert_called_once_with(expected_path,
-                                                    fps=recorder.fps)
+            expected_path = os.path.join(
+                recorder.output_dir, expected_filename
+            )
+            mock_get_writer.assert_called_once_with(
+                expected_path, fps=recorder.fps
+            )
             for frame in recorder.buffer:
                 mock_writer.append_data.assert_any_call(frame)
             mock_writer.close.assert_not_called()
@@ -290,15 +312,17 @@ def test_save_replay_with_custom_filename(recorder):
     # Arrange
     mock_writer = MagicMock()
     custom_filename = "custom_replay.mp4"
-    with patch("imageio.get_writer",
-               return_value=mock_writer) as mock_get_writer:
+    with patch(
+        "imageio.get_writer", return_value=mock_writer
+    ) as mock_get_writer:
         # Act
         recorder.save_replay(custom_filename)
 
         # Assert
         expected_path = os.path.join(recorder.output_dir, custom_filename)
-        mock_get_writer.assert_called_once_with(expected_path,
-                                                fps=recorder.fps)
+        mock_get_writer.assert_called_once_with(
+            expected_path, fps=recorder.fps
+        )
         for frame in recorder.buffer:
             mock_writer.append_data.assert_any_call(frame)
         mock_writer.close.assert_not_called()
@@ -311,8 +335,9 @@ def test_save_replay_failure(recorder, caplog):
         recorder.save_replay()
 
     # Assert
-    assert "Failed to save replay" in caplog.text, (
-        "❌ Error message should be logged")
+    assert (
+        "Failed to save replay" in caplog.text
+    ), "❌ Error message should be logged"
 
 
 # TODO: LOGGER ERROR WITH CAPLOG
@@ -322,13 +347,13 @@ def test_set_buffer_duration(recorder):
 
     # Assert
     expected_buffer_length = recorder.fps * 10  # 30 FPS * 10 seconds
-    assert len(recorder.buffer) == expected_buffer_length, (
-        f"Buffer length should be {expected_buffer_length}."
-    )
+    assert (
+        len(recorder.buffer) == expected_buffer_length
+    ), f"Buffer length should be {expected_buffer_length}."
     recorder.replay_manager.buffer = recorder.buffer
-    assert recorder.replay_manager.buffer == recorder.buffer, (
-        "❌ The replay manager's buffer was not updated correctly."
-    )
+    assert (
+        recorder.replay_manager.buffer == recorder.buffer
+    ), "❌ The replay manager's buffer was not updated correctly."
 
 
 def test_start_in_app_replay(recorder, caplog):
@@ -345,9 +370,9 @@ def test_start_in_app_replay(recorder, caplog):
 
     # Assert
     assert recorder.replaying is True, "❌ Replay should be started."
-    assert np.array_equal(recorder.replay_frames, recorder.buffer), (
-        "❌ Replay frames should match the buffer frames."
-    )
+    assert np.array_equal(
+        recorder.replay_frames, recorder.buffer
+    ), "❌ Replay frames should match the buffer frames."
 
 
 def test_show_replay_frame(recorder):
@@ -364,7 +389,9 @@ def test_show_replay_frame(recorder):
     recorder.show_replay_frame()
 
     # Assert
-    assert recorder.replay_index == 1, "❌ Replay index should increment by 1."
+    assert (
+        recorder.replay_index == 1
+    ), "❌ Replay index should increment by 1."
     recorder.update_callback.assert_called_once()
 
 
@@ -382,8 +409,9 @@ def test_show_next_frame(recorder):
     recorder.show_next_frame()
 
     # Assert
-    assert recorder.replay_index == 1, (
-        "❌ Replay index should move to the next frame.")
+    assert (
+        recorder.replay_index == 1
+    ), "❌ Replay index should move to the next frame."
     recorder.update_callback.assert_called_once()
 
 
@@ -401,8 +429,9 @@ def test_show_previous_frame(recorder):
     recorder.show_previous_frame()
 
     # Assert
-    assert recorder.replay_index == 1, (
-        "❌ Replay index should move to the previous frame.")
+    assert (
+        recorder.replay_index == 1
+    ), "❌ Replay index should move to the previous frame."
     recorder.update_callback.assert_called_once()
 
 
@@ -412,9 +441,12 @@ def test_set_replay_speed(recorder, caplog):
         recorder.set_replay_speed(2.5)
 
     # Assert
-    assert recorder.replay_speed == 2.5, "❌ Replay speed should be set to 2.5."
-    assert "Replay speed set to 2.5x." in caplog.text, (
-        "❌ Log message missing for replay speed.")
+    assert (
+        recorder.replay_speed == 2.5
+    ), "❌ Replay speed should be set to 2.5."
+    assert (
+        "Replay speed set to 2.5x." in caplog.text
+    ), "❌ Log message missing for replay speed."
 
 
 def test_stop_in_app_replay(recorder, caplog):
@@ -432,8 +464,9 @@ def test_stop_in_app_replay(recorder, caplog):
     assert recorder.replaying is False, "❌ Replay should be stopped."
     assert recorder.replay_frames == [], "❌ Replay frames should be cleared."
     assert recorder.replay_index == 0, "❌ Replay index should reset to 0."
-    assert "In-app replay stopped." in caplog.text, (
-        "❌ Log message missing for replay stop.")
+    assert (
+        "In-app replay stopped." in caplog.text
+    ), "❌ Log message missing for replay stop."
     if recorder.replay_timer:
         recorder.replay_timer.stop.assert_called_once()
 
@@ -451,8 +484,9 @@ def test_stop_in_app_replay_resume_live(recorder, caplog):
     # Assert
     assert not recorder.replaying, "❌ Replay should be stopped."
     recorder.start_recording.assert_called_once_with(recorder.update_callback)
-    assert "In-app replay stopped." in caplog.text, (
-        "❌ Missing replay stop log.")
+    assert (
+        "In-app replay stopped." in caplog.text
+    ), "❌ Missing replay stop log."
 
 
 @patch("RePoste.video_manager.QImage")

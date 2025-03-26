@@ -29,7 +29,7 @@ class ScoreboardManager(QObject):
         self.client = None
         self.running = False
         self.current_data = {}
-        
+
     def start(self):
         """Launch the asyncio event loop in a background thread."""
         if self.thread and self.thread.is_alive():
@@ -62,9 +62,13 @@ class ScoreboardManager(QObject):
         self.loop = asyncio.new_event_loop()
         asyncio.set_event_loop(self.loop)
         try:
-            self.loop.run_until_complete(self._main_task(SFS_ADDRESS, SFS_UUID))
+            self.loop.run_until_complete(
+                self._main_task(SFS_ADDRESS, SFS_UUID)
+            )
         except Exception as e:
-            logger.error(f"Exception in scoreboard manager loop: {e}", exc_info=True)
+            logger.error(
+                f"Exception in scoreboard manager loop: {e}", exc_info=True
+            )
         finally:
             self.loop.close()
 
@@ -90,7 +94,9 @@ class ScoreboardManager(QObject):
             # logger.info(f"Value of characteristic {uuid}: {value}") # logger go brr
             self._notification_handler(0, value)
         except Exception as e:
-            logger.error(f"Error reading characteristic {uuid}: {e}", exc_info=True)
+            logger.error(
+                f"Error reading characteristic {uuid}: {e}", exc_info=True
+            )
 
     def _notification_handler(self, sender: int, data: bytearray):
         """
@@ -100,7 +106,9 @@ class ScoreboardManager(QObject):
         """
         raw_str = data.decode("ascii", errors="ignore").strip()
         if len(raw_str) != 14:
-            logger.warning(f"Unexpected scoreboard data len={len(raw_str)}: {raw_str}")
+            logger.warning(
+                f"Unexpected scoreboard data len={len(raw_str)}: {raw_str}"
+            )
             return
 
         if raw_str == "00000000000000":
@@ -118,7 +126,7 @@ class ScoreboardManager(QObject):
             return {}
 
         try:
-            
+
             b2 = int(hex_pairs[0], 16)  # Right score (BCD)
             b3 = int(hex_pairs[1], 16)  # Left score (BCD)
             b4 = int(hex_pairs[2], 16)  # Seconds (BCD)
@@ -137,25 +145,26 @@ class ScoreboardManager(QObject):
         minutes = decode_bcd(b5)
         lamp_bits = parse_lamp_bits(b6)
         match_bits = parse_matches_and_priorities(b7)
-        penalty = parse_penalty_bits(b9)    
+        penalty = parse_penalty_bits(b9)
 
         parsed_data = {
             "right_score": right_score,
-            "left_score":  left_score,
-            "seconds":     seconds,
-            "minutes":     minutes,
-            "lamp_bits":   lamp_bits,
-            "match_bits":  match_bits,
-            "penalty":     penalty,
+            "left_score": left_score,
+            "seconds": seconds,
+            "minutes": minutes,
+            "lamp_bits": lamp_bits,
+            "match_bits": match_bits,
+            "penalty": penalty,
         }
-        return(parsed_data)
-        #print(parsed_data) #TEST PRINT GO BRR
+        return parsed_data
+        # print(parsed_data) #TEST PRINT GO BRR
 
 
-#NEW FUNCTIONS TO TEST IN LAB   
+# NEW FUNCTIONS TO TEST IN LAB
 def decode_bcd(bcd: int) -> int:
     """Decode a Binary-Coded Decimal (BCD) value."""
     return (bcd >> 4) * 10 + (bcd & 0x0F)
+
 
 def parse_lamp_bits(b6: int) -> dict:
     """
@@ -163,15 +172,15 @@ def parse_lamp_bits(b6: int) -> dict:
     Returns dictionary indicating which lamps are ON (True) or OFF (False).
     """
     return {
-        
-        "left_white": bool(b6 & 0x01),# D0
-        "right_white": bool(b6 & 0x02),# D1
-        "left_red": bool(b6 & 0x04), # D2
+        "left_white": bool(b6 & 0x01),  # D0
+        "right_white": bool(b6 & 0x02),  # D1
+        "left_red": bool(b6 & 0x04),  # D2
         "right_green": bool(b6 & 0x08),  # D3
-        "right_yellow": bool(b6 & 0x10), # D4 
-        "left_yellow": bool(b6 & 0x20), # D5 
+        "right_yellow": bool(b6 & 0x10),  # D4
+        "left_yellow": bool(b6 & 0x20),  # D5
         # D6 and D7 are not used
     }
+
 
 def parse_matches_and_priorities(b7: int) -> dict:
     """
@@ -184,17 +193,18 @@ def parse_matches_and_priorities(b7: int) -> dict:
       D4..D7 => unused
     """
     # bits D0..D1 (mask 0b0011)
-    num_matches = b7 & 0x03 
+    num_matches = b7 & 0x03
     # bit D2 (0b0100)
-    right_priority = bool(b7 & 0x04)  
+    right_priority = bool(b7 & 0x04)
     # bit D3 (0b1000)
-    left_priority  = bool(b7 & 0x08)  
+    left_priority = bool(b7 & 0x08)
 
     return {
         "num_matches": num_matches,
         "right_priority": right_priority,
-        "left_priority": left_priority
+        "left_priority": left_priority,
     }
+
 
 def parse_penalty_bits(b9: int) -> dict:
     """
@@ -208,10 +218,8 @@ def parse_penalty_bits(b9: int) -> dict:
     Bits D4..D7 are ignored/unused as per doc.
     """
     return {
-        "penalty_right_red": bool(b9 & 0x01),# D0
-        "penalty_left_red": bool(b9 & 0x02), # D1
+        "penalty_right_red": bool(b9 & 0x01),  # D0
+        "penalty_left_red": bool(b9 & 0x02),  # D1
         "penalty_right_yellow": bool(b9 & 0x04),  # D2
-        "penalty_left_yellow": bool(b9 & 0x08),# D3
+        "penalty_left_yellow": bool(b9 & 0x08),  # D3
     }
-
-

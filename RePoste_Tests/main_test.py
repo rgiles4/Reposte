@@ -10,7 +10,9 @@ def mock_app_and_window():
     with (
         patch("PyQt6.QtWidgets.QApplication") as mock_app,
         patch("RePoste.gui.MainWindow") as mock_main_window,
-        patch("RePoste.scoreboard_manager.ScoreboardManager") as mock_scoreboard_mgr,
+        patch(
+            "RePoste.scoreboard_manager.ScoreboardManager"
+        ) as mock_scoreboard_mgr,
     ):
         # Mock QApplication, MainWindow, and ScoreboardManager classes
         mock_app_instance = MagicMock(spec=QApplication)
@@ -48,7 +50,9 @@ def test_main(mock_app_and_window):
 
     # Assert
     # QApplication initialization
-    mock_app.assert_called_once_with([]), "❌ Expected QApplication to be called once with an empty list."
+    mock_app.assert_called_once_with(
+        []
+    ), "❌ Expected QApplication to be called once with an empty list."
 
     # ScoreboardManager instantiation and method calls
     mock_scoreboard_mgr.assert_called_once(), "❌ Expected ScoreboardManager to be instantiated once."

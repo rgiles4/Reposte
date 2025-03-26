@@ -11,13 +11,18 @@ from RePoste.replay_manager import ReplayManager
 def qapp():
     """Provides a QApplication instance for tests."""
     from PyQt6.QtWidgets import QApplication
+
     return QApplication([])
 
 
 @pytest.fixture
 def sample_buffer():
-    return deque([np.random.randint(
-        0, 255, (100, 100, 3), dtype=np.uint8) for _ in range(5)])
+    return deque(
+        [
+            np.random.randint(0, 255, (100, 100, 3), dtype=np.uint8)
+            for _ in range(5)
+        ]
+    )
 
 
 @pytest.fixture
@@ -38,8 +43,10 @@ def test_initialization(replay_manager, sample_buffer, output_dir):
 
 
 def test_start_in_app_replay(qtbot, replay_manager):
-    replay_manager.replay_frames = [np.random.randint(
-        0, 255, (480, 640, 3), dtype=np.uint8) for _ in range(5)]
+    replay_manager.replay_frames = [
+        np.random.randint(0, 255, (480, 640, 3), dtype=np.uint8)
+        for _ in range(5)
+    ]
     replay_manager.buffer = replay_manager.replay_frames.copy()
 
     mock_callback = MagicMock()
@@ -55,8 +62,10 @@ def test_start_in_app_replay(qtbot, replay_manager):
 
 def test_stop_in_app_replay(replay_manager):
     # Arrange
-    replay_manager.replay_frames = [np.random.randint(
-        0, 255, (480, 640, 3), dtype=np.uint8) for _ in range(3)]
+    replay_manager.replay_frames = [
+        np.random.randint(0, 255, (480, 640, 3), dtype=np.uint8)
+        for _ in range(3)
+    ]
     replay_manager.buffer = replay_manager.replay_frames.copy()
 
     # Act
@@ -64,19 +73,29 @@ def test_stop_in_app_replay(replay_manager):
     try:
         replay_manager.start_in_app_replay()
     except Exception as e:
-        pytest.fail(f"start_in_app_replay() raised an unexpected exception: {e}")
+        pytest.fail(
+            f"start_in_app_replay() raised an unexpected exception: {e}"
+        )
 
     # Stop Replay
     try:
         replay_manager.stop_in_app_replay()
     except Exception as e:
-        pytest.fail(f"stop_in_app_replay() raised an unexpected exception: {e}")
+        pytest.fail(
+            f"stop_in_app_replay() raised an unexpected exception: {e}"
+        )
 
     # Assert
     assert replay_manager.replaying is False, "Replaying flag should be False"
-    assert isinstance(replay_manager.replay_frames, list), "replay_frames should be a list"
-    assert replay_manager.replay_frames == [], "replay_frames should be empty after stopping"
-    assert replay_manager.replay_index == 0, "replay_index should be reset to 0"
+    assert isinstance(
+        replay_manager.replay_frames, list
+    ), "replay_frames should be a list"
+    assert (
+        replay_manager.replay_frames == []
+    ), "replay_frames should be empty after stopping"
+    assert (
+        replay_manager.replay_index == 0
+    ), "replay_index should be reset to 0"
 
 
 def test_set_replay_speed(replay_manager):
@@ -89,8 +108,10 @@ def test_set_replay_speed(replay_manager):
 
 def test_show_next_frame(replay_manager):
     # Arrange
-    replay_manager.replay_frames = [np.random.randint(
-        0, 255, (480, 640, 3), dtype=np.uint8) for _ in range(5)]
+    replay_manager.replay_frames = [
+        np.random.randint(0, 255, (480, 640, 3), dtype=np.uint8)
+        for _ in range(5)
+    ]
     replay_manager.buffer = replay_manager.replay_frames.copy()
     replay_manager.start_in_app_replay()
     initial_index = replay_manager.replay_index
@@ -100,13 +121,16 @@ def test_show_next_frame(replay_manager):
 
     # Assert
     assert replay_manager.replay_index == min(
-        initial_index + 1, len(replay_manager.replay_frames) - 1)
+        initial_index + 1, len(replay_manager.replay_frames) - 1
+    )
 
 
 def test_show_previous_frame(replay_manager):
     # Arrange
-    replay_manager.replay_frames = [np.random.randint(
-        0, 255, (480, 640, 3), dtype=np.uint8) for _ in range(3)]
+    replay_manager.replay_frames = [
+        np.random.randint(0, 255, (480, 640, 3), dtype=np.uint8)
+        for _ in range(3)
+    ]
     replay_manager.buffer = replay_manager.replay_frames.copy()
     replay_manager.start_in_app_replay()
     replay_manager.replay_index = 2

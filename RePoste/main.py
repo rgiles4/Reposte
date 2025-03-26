@@ -2,7 +2,7 @@ import sys
 from PyQt6.QtWidgets import QApplication
 from RePoste.gui import MainWindow
 from RePoste.scoreboard_manager import ScoreboardManager
-        
+
 
 def main():
     # Initialize the QApplication

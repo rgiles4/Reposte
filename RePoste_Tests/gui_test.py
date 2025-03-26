@@ -65,8 +65,9 @@ def test_frame_update(create_app):
 def test_open_settings_window(mocker):
     # Arrange
     window = MainWindow()
-    mock_settings_window = mocker.patch("RePoste.gui.SettingsWindow",
-                                        autospec=True)
+    mock_settings_window = mocker.patch(
+        "RePoste.gui.SettingsWindow", autospec=True
+    )
     instance = mock_settings_window.return_value  # Mocked instance
 
     # Act
@@ -133,4 +134,3 @@ def test_keyPressEvent_setReplaySpeed(key, expected_speed):
 
     # Assert
     window.recorder.set_replay_speed.assert_called_once_with(expected_speed)
-
