@@ -1,136 +1,237 @@
+import os
 from PyQt6.QtWidgets import (
     QSizePolicy,
     QMainWindow,
     QLabel,
     QVBoxLayout,
     QWidget,
+    QPushButton,
+    QHBoxLayout
 )
-from PyQt6.QtCore import Qt
-from video_manager import VideoRecorder
+from PyQt6.QtCore import Qt, QSize
+from PyQt6.QtGui import QFont, QIcon
 
+from video_manager import VideoRecorder
+from settings import SettingsWindow
+from scoreboard_manager import ScoreboardManager 
+
+class ScoreboardWidget(QWidget):
+    def __init__(self):
+        super().__init__()
+        self.init_ui()
+
+    def init_ui(self):
+        self.setStyleSheet("background-color: rgba(0, 0, 0, 180); border-radius: 10px; padding: 5px;")
+
+        score_font = QFont("Arial", 20, QFont.Weight.Bold)
+        trigger_font = QFont("Arial", 18, QFont.Weight.Bold)
+
+        self.left_score_label = QLabel("0")
+        self.left_score_label.setFont(score_font)
+        self.left_score_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.left_score_label.setStyleSheet("color: white;")
+
+        self.right_score_label = QLabel("0")
+        self.right_score_label.setFont(score_font)
+        self.right_score_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.right_score_label.setStyleSheet("color: white;")
+
+        self.timer_label = QLabel("3:00")
+        self.timer_label.setFont(score_font)
+        self.timer_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.timer_label.setStyleSheet("color: white;")
+
+        self.match_indicator = QLabel("1")
+        self.match_indicator.setFont(score_font)
+        self.match_indicator.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.match_indicator.setStyleSheet("color: white;")
+
+        self.trigger_label = QLabel("")  
+        self.trigger_label.setFont(trigger_font)
+        self.trigger_label.setFixedSize(40, 40)
+        self.trigger_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.trigger_label.setStyleSheet("background-color: transparent; color: white; border-radius: 20px;")
+
+        self.red_card_overlay = QLabel()
+        self.red_card_overlay.setFixedSize(80, 80)
+        self.red_card_overlay.setStyleSheet("background-color: transparent; border-radius: 10px;")
+        self.red_card_overlay.setVisible(False)
+
+        self.yellow_card_overlay = QLabel()
+        self.yellow_card_overlay.setFixedSize(80, 80)
+        self.yellow_card_overlay.setStyleSheet("background-color: transparent; border-radius: 10px;")
+        self.yellow_card_overlay.setVisible(False)
+
+        score_layout = QHBoxLayout()
+        score_layout.addWidget(self.left_score_label)
+        score_layout.addWidget(self.timer_label)
+        score_layout.addWidget(self.right_score_label)
+
+        main_layout = QVBoxLayout()
+        main_layout.addLayout(score_layout)
+        main_layout.addWidget(self.match_indicator, alignment=Qt.AlignmentFlag.AlignCenter)
+
+        final_layout = QVBoxLayout()
+        final_layout.addWidget(self.red_card_overlay, alignment=Qt.AlignmentFlag.AlignCenter)
+        final_layout.addWidget(self.yellow_card_overlay, alignment=Qt.AlignmentFlag.AlignCenter)
+        final_layout.addLayout(main_layout)
+
+        self.setLayout(final_layout)
+
+    def update_from_data(self, data):
+        if not data:
+            return  # Prevent updating with empty data
+        print(f"Updating scoreboard UI with data: {data}")
+        
+        self.left_score_label.setText(str(data.get("left_score", 0)))
+        self.right_score_label.setText(str(data.get("right_score", 0)))
+        self.timer_label.setText(f"{data.get('minutes', 0)}:{data.get('seconds', 0):02}")
+        self.match_indicator.setText(str(data.get("match_bits", {}).get("num_matches", 1)))
+        
+        lamp_bits = data.get("lamp_bits", {})
+        if lamp_bits.get("left_white") or lamp_bits.get("right_white"):
+            self.trigger_label.setText("W")
+            self.trigger_label.setStyleSheet("background-color: white; color: black; border-radius: 20px;")
+        elif lamp_bits.get("left_red") or lamp_bits.get("right_green"):
+            self.trigger_label.setText("G")
+            self.trigger_label.setStyleSheet("background-color: green; color: white; border-radius: 20px;")
+        else:
+            self.trigger_label.setText("")
+            self.trigger_label.setStyleSheet("background-color: transparent;")
+        
+        penalty = data.get("penalty", {})
+        red_card_active = penalty.get("penalty_right_red", False) or penalty.get("penalty_left_red", False)
+        yellow_card_active = penalty.get("penalty_right_yellow", False) or penalty.get("penalty_left_yellow", False)
+        
+        self.red_card_overlay.setVisible(red_card_active)
+        self.yellow_card_overlay.setVisible(yellow_card_active)
+        
+        self.repaint()
+        self.update()
+        if not data:
+            return  # Prevent updating with empty data
+        
+        self.left_score_label.setText(str(data.get("left_score", 0)))
+        self.right_score_label.setText(str(data.get("right_score", 0)))
+        self.timer_label.setText(f"{data.get('minutes', 0)}:{data.get('seconds', 0):02}")
+        self.match_indicator.setText(str(data.get("match_bits", {}).get("num_matches", 1)))
+        
+        lamp_bits = data.get("lamp_bits", {})
+        if lamp_bits.get("left_white") or lamp_bits.get("right_white"):
+            self.trigger_label.setText("W")
+            self.trigger_label.setStyleSheet("background-color: white; color: black; border-radius: 20px;")
+        elif lamp_bits.get("left_red") or lamp_bits.get("right_green"):
+            self.trigger_label.setText("G")
+            self.trigger_label.setStyleSheet("background-color: green; color: white; border-radius: 20px;")
+        else:
+            self.trigger_label.setText("")
+            self.trigger_label.setStyleSheet("background-color: transparent;")
+        
+        penalty = data.get("penalty", {})
+        red_card_active = penalty.get("penalty_right_red", False) or penalty.get("penalty_left_red", False)
+        yellow_card_active = penalty.get("penalty_right_yellow", False) or penalty.get("penalty_left_yellow", False)
+        
+        self.red_card_overlay.setVisible(red_card_active)
+        self.yellow_card_overlay.setVisible(yellow_card_active)
+        
+        self.repaint()
+        self.update()
+        self.left_score_label.setText(str(data["left_score"]))
+        self.right_score_label.setText(str(data["right_score"]))
+        self.timer_label.setText(f"{data['minutes']}:{data['seconds']:02}")
+        self.match_indicator.setText(str(data["match_bits"]["num_matches"]))
+
+        if data["lamp_bits"]["left_white"] or data["lamp_bits"]["right_white"]:
+            self.trigger_label.setText("W")
+            self.trigger_label.setStyleSheet("background-color: white; color: black; border-radius: 20px;")
+        elif data["lamp_bits"]["left_red"] or data["lamp_bits"]["right_green"]:
+            self.trigger_label.setText("G")
+            self.trigger_label.setStyleSheet("background-color: green; color: white; border-radius: 20px;")
+        else:
+            self.trigger_label.setText("")
+            self.trigger_label.setStyleSheet("background-color: transparent;")
+
+        red_card_active = data["penalty"].get("penalty_right_red", False) or data["penalty"].get("penalty_left_red", False)
+        yellow_card_active = data["penalty"].get("penalty_right_yellow", False) or data["penalty"].get("penalty_left_yellow", False)
+        self.red_card_overlay.setVisible(red_card_active)
+        self.yellow_card_overlay.setVisible(yellow_card_active)
 
 class MainWindow(QMainWindow):
-    """
-    MainWindow is the primary GUI class for the video recorder application.
-
-    Handles the layout and display of the video feed, initializes the
-    VideoRecorder, and processes user input for controlling video recording.
-
-    things it do:
-    - Displays video feed using a QLabel within a QVBoxLayout.
-    - Listens for key events to control video recording (pause, resume, save replay).
-    - Provides an interface for interacting with the video recorder.
-
-    things it need to-do:
-    - Add more key events for managing the replay functionality.
-    """
-
+    def update_scoreboard(self, data):
+        if data:
+            self.scoreboard.update_from_data(data)
+    def update_frame(self, pixmap):
+        if pixmap:
+            self.video_feed.setPixmap(pixmap.scaled(self.video_feed.size(), Qt.AspectRatioMode.KeepAspectRatio))
+    def open_settings_window(self):
+        settings_window = SettingsWindow(self.recorder)
+        settings_window.exec()
     def __init__(self):
         super().__init__()
         self.setWindowTitle("RePoste")
-        self.setWindowState(Qt.WindowState.WindowMaximized)
+        self.showFullScreen()
 
-        # Set up central widget and layout
         central_widget = QWidget()
-        self.layout = QVBoxLayout(central_widget)
+        self.main_layout = QVBoxLayout(central_widget)
         self.setCentralWidget(central_widget)
 
-        # Video feed QLabel
         self.video_feed = QLabel()
         self.video_feed.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        # NOTE: setSizePolicy is making the label size the size of the window
-        # If elements want to be added around the label, this will have
-        # to be adjusted
-        self.video_feed.setSizePolicy(
-            QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding
-        )
-        self.layout.addWidget(self.video_feed)
+        self.video_feed.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
+        self.video_feed.setStyleSheet("background-color: black;")
+        self.main_layout.addWidget(self.video_feed)
 
-        # Initialize VideoRecorder
+        self.scoreboard = ScoreboardWidget()
+        self.scoreboard.setFixedHeight(80)
+        self.main_layout.addWidget(self.scoreboard, alignment=Qt.AlignmentFlag.AlignBottom | Qt.AlignmentFlag.AlignHCenter)
+
+        self.settings_button = QPushButton()
+        self.settings_button.setFocusPolicy(Qt.FocusPolicy.NoFocus)
+        icon_path = os.path.abspath("../Reposte/images/cog-svgrepo-com.svg")
+
+        if os.path.exists(icon_path):
+            self.settings_button.setIcon(QIcon(icon_path))
+        else:
+            print(f"Warning: Icon not found at {icon_path}")
+
+        self.settings_button.setIconSize(QSize(32, 32))
+        self.settings_button.setFixedSize(40, 40)
+        self.settings_button.clicked.connect(self.open_settings_window)
+        self.main_layout.addWidget(self.settings_button, alignment=Qt.AlignmentFlag.AlignTop | Qt.AlignmentFlag.AlignRight)
+
         self.recorder = VideoRecorder()
         self.recorder.start_recording(self.update_frame)
 
-    def update_frame(self, pixmap):
-        """Update video feed to fill the label to the closest aspect ratio.
-
-        TODO: webcam doesn't fit exactly to the label.  White bars on the sides are larger
-        than the top adn bottom.  Fix video feed to fill all of the label (screen).
-        """
-
-        # Get label dimensions
-        label_size = self.video_feed.size()
-        label_width = label_size.width()
-        label_height = label_size.height()
-
-        # Get webcam (pixmap) dimensions
-        pixmap_width = pixmap.width()
-        pixmap_height = pixmap.height()
-
-        # Calculate aspect ratio of the pixmap
-        pixmap_aspect_ratio = pixmap_width / pixmap_height
-
-        if label_width / label_height > pixmap_aspect_ratio:
-            # Scale to fit height of gui window
-            target_height = label_height
-            target_width = int(target_height * pixmap_aspect_ratio)
-        else:
-            # Scake to fit width of gui window
-            target_width = label_width
-            target_height = int(target_width / pixmap_aspect_ratio)
-
-        # Scale the pixmap to the calculated dimensions
-        scaled_pixmap = pixmap.scaled(
-            target_width,
-            target_height,
-            Qt.AspectRatioMode.KeepAspectRatio,
-            Qt.TransformationMode.SmoothTransformation,
-        )
-
-        # Center the scaled pixmap in the label
-        self.video_feed.setPixmap(scaled_pixmap)
+        self.scoreboard_manager = ScoreboardManager()
+        self.scoreboard_manager.scoreboard_updated.connect(self.update_scoreboard)
+        self.scoreboard_manager.start()
 
     def keyPressEvent(self, event):
-        """Handle key presses for pausing, resuming, and saving replay."""
-        if event.key() == Qt.Key.Key_Escape:
+        key = event.key()
+        if key == Qt.Key.Key_Escape:
             self.recorder.stop_recording()
+            self.scoreboard_manager.stop()
             self.close()
-        elif (
-            event.key() == Qt.Key.Key_Space
-        ):  # Stop recording and save with 'SPACE'
+        elif key == Qt.Key.Key_Space:
             self.recorder.save_replay()
-        elif event.key() == Qt.Key.Key_P:  # Pause recording with 'P'
+        elif key == Qt.Key.Key_P:
             self.recorder.pause_recording()
-        elif event.key() == Qt.Key.Key_R:  # Resume recording with 'R'
+        elif key == Qt.Key.Key_R:
             self.recorder.resume_recording()
-        elif (
-            event.key() == Qt.Key.Key_Up
-        ):  # Start in-app replay with 'Up Key'
+        elif key == Qt.Key.Key_Up:
             self.recorder.start_in_app_replay(self.update_frame)
-        elif (
-            event.key() == Qt.Key.Key_Down
-        ):  # Stop in-app replay and resume live recording with 'Down Key'
+        elif key == Qt.Key.Key_Down:
             self.recorder.stop_in_app_replay(resume_live=True)
-        elif event.key() == Qt.Key.Key_0:
-            self.recorder.set_replay_speed(1.0)  # In-app replay: 100% speed
-        elif event.key() == Qt.Key.Key_1:
-            self.recorder.set_replay_speed(0.1)  # In-app replay: 10% speed
-        elif event.key() == Qt.Key.Key_2:
-            self.recorder.set_replay_speed(0.2)  # In-app replay: 20% speed
-        elif event.key() == Qt.Key.Key_3:
-            self.recorder.set_replay_speed(0.3)  # In-app replay:30% speed
-        elif event.key() == Qt.Key.Key_4:
-            self.recorder.set_replay_speed(0.4)  # In-app replay: 40% speed
-        elif event.key() == Qt.Key.Key_5:
-            self.recorder.set_replay_speed(0.5)  # In-app replay: 50% speed
-        elif event.key() == Qt.Key.Key_6:
-            self.recorder.set_replay_speed(0.6)  # In-app replay: 60% speed
-        elif event.key() == Qt.Key.Key_7:
-            self.recorder.set_replay_speed(0.7)  # In-app replay: 70% speed
-        elif event.key() == Qt.Key.Key_8:
-            self.recorder.set_replay_speed(0.8)  # In-app replay: 80% speed
-        elif event.key() == Qt.Key.Key_9:
-            self.recorder.set_replay_speed(0.9)  # In-app replay: 90% speed
-        elif event.key() == Qt.Key.Key_Left:
-            self.recorder.show_previous_frame()  # In-app replay: go to previous frame
-        elif event.key() == Qt.Key.Key_Right:
-            self.recorder.show_next_frame()  # In-app replay: go to next frame
+        elif key == Qt.Key.Key_0:
+            self.recorder.set_replay_speed(1.0)
+        elif Qt.Key.Key_1 <= key <= Qt.Key.Key_9:
+            self.recorder.set_replay_speed(round((key - Qt.Key.Key_0) * 0.1, 1)) 
+        elif key == Qt.Key.Key_Left:
+            self.recorder.show_previous_frame()
+        elif key == Qt.Key.Key_Right:
+            self.recorder.show_next_frame()
+        elif key == Qt.Key.Key_F11:
+            if self.isFullScreen():
+                self.showNormal()
+            else:
+                self.showFullScreen()
