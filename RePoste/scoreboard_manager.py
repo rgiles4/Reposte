@@ -10,7 +10,8 @@ logger = logging.getLogger()
 # SFS_Link[S/N]
 SFS_DEVICE_NAME = "SFS-Link [047]"
 SFS_ADDRESS = "54:32:04:78:64:4A"
-SFS_UUID = "6f000009-b5a3-f393-e0a9-e50e24dcca9e"
+# SFS_UUID = "6f000009-b5a3-f393-e0a9-e50e24dcca9e"
+SFS_CHARACTERISTIC_UUID = "6f000009-b5a3-f393-e0a9-e50e24dcca9e"
 
 
 class ScoreboardManager(QObject):
@@ -45,17 +46,9 @@ class ScoreboardManager(QObject):
         """Stop the asyncio event loop and disconnect the BLE client."""
         self.running = False
         if self.loop:
-            # Cancel all pending tasks
-            tasks = asyncio.all_tasks(self.loop)
-            for task in tasks:
-                task.cancel()
-
-            # Stop the event loop
             self.loop.call_soon_threadsafe(self.loop.stop)
-
         if self.thread:
             self.thread.join()
-
         if self.client:
             self.loop.run_until_complete(self._stop_async())
 
@@ -68,78 +61,64 @@ class ScoreboardManager(QObject):
         self.loop = asyncio.new_event_loop()
         asyncio.set_event_loop(self.loop)
         try:
-            # Pass only SFS_UUID since the address is discovered dynamically
-            self.loop.run_until_complete(self._main_task(SFS_UUID))
+            self.loop.run_until_complete(self._main_task())
         except Exception as e:
             logger.error(f"Exception in scoreboard manager loop: {e}", exc_info=True)
         finally:
             self.loop.close()
 
-    async def _main_task(self, uuid):
-        try:
-            logger.info("Scanning for BLE devices...")
-            target_device = await self._find_target_device()
-            if not target_device:
-                logger.error(f"Device with name {SFS_DEVICE_NAME} not found.")
+    async def _main_task(self):
+        logger.info("Scanning for BLE devices...")
+        target_device = await self._find_target_device()
+        if not target_device:
+            logger.error(f"Device with name {SFS_DEVICE_NAME} or address {SFS_ADDRESS} not found.")
+            self.running = False
+            return
+
+        logger.info(f"Connecting to device {target_device.name} at {target_device.address}")
+        async with BleakClient(target_device.address) as client:
+            self.client = client
+            if not client.is_connected:
+                logger.error("Failed to connect to the device.")
                 self.running = False
                 return
 
-            logger.info(f"Connecting to device {target_device.name} at {target_device.address}")
-            async with BleakClient(target_device) as client:
-                self.client = client
-                if not client.is_connected:
-                    logger.error("Failed to connect to the device.")
-                    self.running = False
-                    return
+            logger.info(f"Successfully connected to {target_device.address}")
 
-                logger.info(f"Successfully connected to {target_device.address}")
-                if not await self._validate_characteristic(client, uuid):
-                    logger.error(f"Characteristic {uuid} not found on the device.")
-                    self.running = False
-                    return
+            # List available services and characteristics
+            logger.info("Listing available services and characteristics:")
+            for service in client.services:
+                logger.info(f"Service: {service.uuid}")
+                for char in service.characteristics:
+                    logger.info(f"  Characteristic: {char.uuid} - Properties: {char.properties}")
 
-                await self._poll_characteristic(client, uuid)
+            # Validate and read the characteristic
+            if SFS_CHARACTERISTIC_UUID in [char.uuid for service in client.services for char in service.characteristics]:
+                await self._poll_characteristic(client, SFS_CHARACTERISTIC_UUID)
+            else:
+                logger.error(f"Characteristic {SFS_CHARACTERISTIC_UUID} not found on the device.")
+                self.running = False
 
-        except asyncio.CancelledError:
-            logger.info("Main task was canceled.")
-        except Exception as e:
-            logger.error(f"Exception in main task: {e}", exc_info=True)
-        finally:
-            self.client = None
+        self.client = None
 
     async def _find_target_device(self):
         devices = await BleakScanner.discover(timeout=5.0)
         for d in devices:
             logger.info(f"Found device: {d.name} - {d.address}")
-            if d.name == SFS_DEVICE_NAME:
+            if d.name == SFS_DEVICE_NAME or d.address == SFS_ADDRESS:
                 return d
         return None
 
-    async def _validate_characteristic(self, client, uuid):
-        """Check if the specified characteristic UUID exists on the device."""
-        logger.info("Listing available services and characteristics:")
-        for service in client.services:
-            logger.info(f"Service: {service.uuid}")
-            for char in service.characteristics:
-                logger.info(f"  Characteristic: {char.uuid} - Properties: {char.properties}")
-
-        if uuid not in [char.uuid for service in client.services for char in service.characteristics]:
-            logger.error(f"Characteristic {uuid} not found on the device.")
-            self.running = False  # Stop the manager
-            raise SystemExit("Exiting application: Required BLE characteristic not found.")
-        return True
-
     async def _poll_characteristic(self, client, uuid):
         """Poll the specified characteristic value in a loop."""
-        try:
-            while self.running and client.is_connected:
+        while self.running and client.is_connected:
+            try:
                 value = await client.read_gatt_char(uuid)
                 self._notification_handler(0, value)
-                await asyncio.sleep(0.9)  # Adjust the polling interval as needed
-        except asyncio.CancelledError:
-            logger.info("Polling task was canceled.")
-        except Exception as read_err:
-            logger.error(f"Error reading characteristic {uuid}: {read_err}", exc_info=True)
+            except Exception as read_err:
+                logger.error(f"Error reading characteristic {uuid}: {read_err}", exc_info=True)
+                break
+            await asyncio.sleep(0.9)  # Adjust the polling interval as needed
 
     def _notification_handler(self, sender: int, data: bytearray):
         """
