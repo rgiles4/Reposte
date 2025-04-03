@@ -25,8 +25,8 @@ class ScoreboardWidget(QWidget):
     def init_ui(self):
         self.setStyleSheet("background-color: rgba(0, 0, 0, 180); border-radius: 10px; padding: 5px;")
 
-        score_font = QFont("Arial", 20, QFont.Weight.Bold)
-        trigger_font = QFont("Arial", 18, QFont.Weight.Bold)
+        score_font = QFont("Arial", 16, QFont.Weight.Bold)
+        trigger_font = QFont("Arial", 14, QFont.Weight.Bold)
 
         self.left_score_label = QLabel("0")
         self.left_score_label.setFont(score_font)
@@ -50,45 +50,63 @@ class ScoreboardWidget(QWidget):
 
         self.trigger_label = QLabel("")  
         self.trigger_label.setFont(trigger_font)
-        self.trigger_label.setFixedSize(40, 40)
+        self.trigger_label.setFixedSize(30, 30)
         self.trigger_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        self.trigger_label.setStyleSheet("background-color: transparent; color: white; border-radius: 20px;")
+        self.trigger_label.setStyleSheet("background-color: transparent; color: white; border-radius: 15px;")
 
-        # Yellow & Red Card Overlays with proper background colors
+        # Yellow & Red Card Overlays with smaller sizes
         self.red_card_overlay = QLabel("Red Card")
-        self.red_card_overlay.setFixedSize(100, 50)
+        self.red_card_overlay.setFixedSize(80, 40)
         self.red_card_overlay.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        self.red_card_overlay.setStyleSheet("background-color: red; color: white; border-radius: 10px; font-size: 16px;")
+        self.red_card_overlay.setStyleSheet("background-color: red; color: white; border-radius: 10px; font-size: 14px;")
         self.red_card_overlay.setVisible(False)
 
         self.yellow_card_overlay = QLabel("Yellow Card")
-        self.yellow_card_overlay.setFixedSize(100, 50)
+        self.yellow_card_overlay.setFixedSize(80, 40)
         self.yellow_card_overlay.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        self.yellow_card_overlay.setStyleSheet("background-color: yellow; color: black; border-radius: 10px; font-size: 16px;")
+        self.yellow_card_overlay.setStyleSheet("background-color: yellow; color: black; border-radius: 10px; font-size: 14px;")
         self.yellow_card_overlay.setVisible(False)
 
+        # Touch Indicators (circle with color) next to each player
+        self.left_touch_indicator = QLabel()
+        self.left_touch_indicator.setFixedSize(25, 25)
+        self.left_touch_indicator.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.left_touch_indicator.setStyleSheet("background-color: transparent; border-radius: 12px;")
+
+        self.right_touch_indicator = QLabel()
+        self.right_touch_indicator.setFixedSize(25, 25)
+        self.right_touch_indicator.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.right_touch_indicator.setStyleSheet("background-color: transparent; border-radius: 12px;")
+
+        # Layout for the score and timer
         score_layout = QHBoxLayout()
         score_layout.addWidget(self.left_score_label)
         score_layout.addWidget(self.timer_label)
         score_layout.addWidget(self.right_score_label)
 
+        # Create a horizontal layout for the cards and touch indicators
+        side_layout = QHBoxLayout()
+        side_layout.addWidget(self.left_touch_indicator, alignment=Qt.AlignmentFlag.AlignLeft)
+        side_layout.addWidget(self.red_card_overlay, alignment=Qt.AlignmentFlag.AlignLeft)
+        side_layout.addStretch(1)  # Push the elements to the left side
+        side_layout.addWidget(self.yellow_card_overlay, alignment=Qt.AlignmentFlag.AlignRight)
+        side_layout.addWidget(self.right_touch_indicator, alignment=Qt.AlignmentFlag.AlignRight)
+
+        # Create the main layout and add the score and timer
         main_layout = QVBoxLayout()
         main_layout.addLayout(score_layout)
         main_layout.addWidget(self.match_indicator, alignment=Qt.AlignmentFlag.AlignCenter)
 
+        # Final layout: combining score, touch indicators, and cards
         final_layout = QVBoxLayout()
-        final_layout.addWidget(self.red_card_overlay, alignment=Qt.AlignmentFlag.AlignCenter)
-        final_layout.addWidget(self.yellow_card_overlay, alignment=Qt.AlignmentFlag.AlignCenter)
-        final_layout.addLayout(main_layout)
+        final_layout.addLayout(main_layout)  # Add main score layout
+        final_layout.addLayout(side_layout)  # Add the side layout with the touch indicators and cards
 
         self.setLayout(final_layout)
-
 
     def update_from_data(self, data):
         if not data:
             return  # Prevent updating with empty data
-
-        print(f"Updating scoreboard UI with data: {data}")
         
         self.left_score_label.setText(str(data.get("left_score", 0)))
         self.right_score_label.setText(str(data.get("right_score", 0)))
@@ -98,10 +116,10 @@ class ScoreboardWidget(QWidget):
         lamp_bits = data.get("lamp_bits", {})
         if lamp_bits.get("left_white") or lamp_bits.get("right_white"):
             self.trigger_label.setText("W")
-            self.trigger_label.setStyleSheet("background-color: white; color: black; border-radius: 20px;")
+            self.trigger_label.setStyleSheet("background-color: white; color: black; border-radius: 15px;")
         elif lamp_bits.get("left_red") or lamp_bits.get("right_green"):
             self.trigger_label.setText("G")
-            self.trigger_label.setStyleSheet("background-color: green; color: white; border-radius: 20px;")
+            self.trigger_label.setStyleSheet("background-color: green; color: white; border-radius: 15px;")
         else:
             self.trigger_label.setText("")
             self.trigger_label.setStyleSheet("background-color: transparent;")
@@ -113,6 +131,22 @@ class ScoreboardWidget(QWidget):
 
         self.red_card_overlay.setVisible(red_card_active)
         self.yellow_card_overlay.setVisible(yellow_card_active)
+
+        # Update touch indicators (circles)
+        if lamp_bits.get("left_red"):
+            self.left_touch_indicator.setStyleSheet("background-color: red; border-radius: 12px;")
+        else:
+            self.left_touch_indicator.setStyleSheet("background-color: transparent; border-radius: 12px;")
+
+        if lamp_bits.get("right_green"):
+            self.right_touch_indicator.setStyleSheet("background-color: green; border-radius: 12px;")
+        else:
+            self.right_touch_indicator.setStyleSheet("background-color: transparent; border-radius: 12px;")
+
+        if lamp_bits.get("left_white"):
+            self.left_touch_indicator.setStyleSheet("background-color: white; border-radius: 12px;")
+        elif lamp_bits.get("right_white"):
+            self.right_touch_indicator.setStyleSheet("background-color: white; border-radius: 12px;")
 
         # Ensure layout is updated properly
         self.repaint()
@@ -144,7 +178,7 @@ class MainWindow(QMainWindow):
         self.main_layout.addWidget(self.video_feed)
 
         self.scoreboard = ScoreboardWidget()
-        self.scoreboard.setFixedHeight(80)
+        self.scoreboard.setFixedHeight(125)
         self.main_layout.addWidget(self.scoreboard, alignment=Qt.AlignmentFlag.AlignBottom | Qt.AlignmentFlag.AlignHCenter)
 
         self.settings_button = QPushButton()

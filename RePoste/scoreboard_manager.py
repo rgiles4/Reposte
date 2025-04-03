@@ -1,13 +1,14 @@
 import asyncio
 import threading
 import logging
-from bleak import BleakClient
+from bleak import BleakClient, BleakScanner
 from PyQt6.QtCore import QObject, pyqtSignal
 
 logger = logging.getLogger()
 
+# Official from SFS-Link Manual v1.2
 SFS_DEVICE_NAME = "SFS_Link[047]"
-SFS_ADDRESS = "54:32:04:78:64:4A"
+SFS_ADDRESS = "54:32:04:78:64:4A"  # Replace with the correct address if needed
 SFS_UUID = "6f000009-b5a3-f393-e0a9-e50e24dcca9e"
 
 
@@ -18,7 +19,7 @@ class ScoreboardManager(QObject):
     Emits a PyQt signal whenever new scoreboard data arrives.
     """
 
-    scoreboard_updated = pyqtSignal(dict)  # Emits updated scoreboard data
+    scoreboard_updated = pyqtSignal(dict)  # Signal for updated scoreboard data
 
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -27,10 +28,6 @@ class ScoreboardManager(QObject):
         self.client = None
         self.running = False
         self.current_data = {}
-
-        # Store the most recent scoreboard data in a single byte array
-        self.current_byte_array = bytearray(7)  # Initialize empty 7-byte array
-        self.previous_byte_array = bytearray(7)
 
     def start(self):
         """Launch the asyncio event loop in a background thread."""
@@ -57,7 +54,11 @@ class ScoreboardManager(QObject):
     async def _stop_async(self):
         """Asynchronously disconnect the BLE client."""
         if self.client and self.client.is_connected:
-            await self.client.disconnect()
+            try:
+                await self.client.disconnect()
+                logger.info("BLE client disconnected.")
+            except Exception as e:
+                logger.error(f"Error disconnecting BLE client: {e}", exc_info=True)
 
     def _run_loop(self):
         """Run the asyncio event loop."""
@@ -70,38 +71,93 @@ class ScoreboardManager(QObject):
         finally:
             self.loop.close()
 
-    def _is_data_ready_for_update(self):
-        """
-        Determines if data is ready for update.
-        For example, you could check some conditions before calling read.            """
-        # Compare byte array with value to see if there is any new change
-        if self.current_byte_array != self.previous_byte_array:
-            self.previous_byte_array = self.current_byte_array
-            return True
-        return False
-
     async def _main_task(self, address, uuid):
-        """Main task to connect to the BLE device and read data."""
-        try:
-            async with BleakClient(address) as client:
-                if client.is_connected:
-                    logger.info(f"Successfully connected to {address}")
-                    while self.running: #Need to find a way to have this loop be used as an if statement that look for any new updates within the bytearray
-                        if self._is_data_ready_for_update():
-                            await self._read_characteristic(client, uuid)
-                        await asyncio.sleep(0.01)  # Sleep for 10ms
-                else:
+        """Main task to connect to the BLE device and read data at a controlled rate."""
+        retry_count = 0
+        max_retries = 5  # Maximum number of retries
+        retry_delay = 5  # Delay between retries in seconds
+
+        while self.running and retry_count < max_retries:
+            try:
+                # Scan for the device before connecting
+                logger.info(f"Scanning for BLE device with address {address}...")
+                device = await BleakScanner.find_device_by_address(address, timeout=10.0)
+                if not device:
+                    logger.warning(f"Device with address {address} not found. Retrying...")
+                    retry_count += 1
+                    await asyncio.sleep(retry_delay)
+                    continue
+
+                # Connect to the device
+                logger.info(f"Found device: {device}. Attempting to connect...")
+                self.client = BleakClient(device)
+                await self.client.connect()
+
+                if not self.client.is_connected:
                     logger.error(f"Failed to connect to {address}")
-        except Exception as e:
-            logger.error(f"Error in main task: {e}", exc_info=True)
-        
-    async def _read_characteristic(self, client, uuid):
-        """Read the characteristic value using its UUID."""
-        try:
-            value = await client.read_gatt_char(uuid)
-            self._notification_handler(0, value)
-        except Exception as e:
-            logger.error(f"Error reading characteristic {uuid}: {e}", exc_info=True)
+                    retry_count += 1
+                    await asyncio.sleep(retry_delay)
+                    continue
+
+                logger.info(f"Successfully connected to {address}")
+
+                # Discover services and characteristics
+                services = self.client.services  # Use the services property instead of get_services()
+                logger.info("Discovered services and characteristics:")
+                for service in services:
+                    logger.info(f"Service: {service.uuid}")
+                    for char in service.characteristics:
+                        logger.info(f"  Characteristic: {char.uuid}")
+
+                # Check if the desired characteristic exists
+                if uuid not in {char.uuid for service in services for char in service.characteristics}:
+                    logger.error(f"Characteristic {uuid} not found on device.")
+                    retry_count += 1
+                    await asyncio.sleep(retry_delay)
+                    continue
+
+                # Main loop to read the characteristic
+                while self.running:
+                    if not self.client.is_connected:
+                        logger.warning("Device disconnected. Attempting to reconnect...")
+                        await self.client.connect()
+                        if not self.client.is_connected:
+                            logger.error("Failed to reconnect. Retrying...")
+                            retry_count += 1
+                            break
+
+                    try:
+                        value = await self.client.read_gatt_char(uuid)
+                        self._notification_handler(0, value)
+                    except Exception as read_err:
+                        logger.error(f"Error reading characteristic {uuid}: {read_err}", exc_info=True)
+                        break
+
+                    await asyncio.sleep(0.1)  # 100ms between reads
+
+            except Exception as e:
+                logger.error(f"Error in main task: {e}", exc_info=True)
+                retry_count += 1
+                await asyncio.sleep(retry_delay)
+
+            finally:
+                # Ensure the client is disconnected
+                if self.client and self.client.is_connected:
+                    try:
+                        await self.client.disconnect()
+                        logger.info("BLE client disconnected.")
+                    except Exception as e:
+                        logger.error(f"Error disconnecting BLE client: {e}", exc_info=True)
+
+        if retry_count >= max_retries:
+            logger.error(f"Failed to connect to {address} after {max_retries} retries.")
+        else:
+            logger.info("BLE task completed.")
+
+        if retry_count >= max_retries:
+            logger.error(f"Failed to connect to {address} after {max_retries} retries.")
+        else:
+            logger.info("BLE task completed.")
 
     def _notification_handler(self, sender: int, data: bytearray):
         """
@@ -109,7 +165,6 @@ class ScoreboardManager(QObject):
         The data is a 14-char string of hex from the SFS-Link.
         e.g. b'06125602140A38' => decode to "06 12 56 02 14 0A 38"
         """
-
         raw_str = data.decode("ascii", errors="ignore").strip()
         if len(raw_str) != 14:
             logger.warning(f"Unexpected scoreboard data len={len(raw_str)}: {raw_str}")
@@ -119,36 +174,29 @@ class ScoreboardManager(QObject):
             self.scoreboard_updated.emit({})
             return
 
-        # Convert hex string into a byte array (7 bytes)
-        new_byte_array = bytearray(int(raw_str[i:i+2], 16) for i in range(0, 14, 2))
-
-        # Only update if the data has changed
-        if new_byte_array != self.current_byte_array:
-            self.current_byte_array = new_byte_array  # Update the stored byte array
-            self.previous_byte_array = self.current_byte_array # Set previous byte array to current
-            self.previous
-            parsed_data = self._parse_sfs_link_bytes(new_byte_array)
+        parsed_data = self._parse_sfs_link_hex(raw_str)
+        if parsed_data:
             self.current_data = parsed_data
-            self.scoreboard_updated.emit(parsed_data)  # Send updated data to UI
+            self.scoreboard_updated.emit(parsed_data)
 
-    def _parse_sfs_link_bytes(self, byte_data: bytearray) -> dict:
-        """
-        Parses the received 7-byte array into structured scoreboard data.
-        """
-
-        try:
-            b2 = byte_data[0]  # Right score (BCD)
-            b3 = byte_data[1]  # Left score (BCD)
-            b4 = byte_data[2]  # Seconds (BCD)
-            b5 = byte_data[3]  # Minutes (BCD)
-            b6 = byte_data[4]  # Lamp bits
-            b7 = byte_data[5]  # Match bits
-            b9 = byte_data[6]  # Penalty bits
-        except IndexError as e:
-            logger.error(f"Invalid byte array length: {byte_data} => {e}")
+    def _parse_sfs_link_hex(self, hex_str: str) -> dict:
+        hex_pairs = [hex_str[i : i + 2] for i in range(0, 14, 2)]
+        if len(hex_pairs) != 7:
             return {}
 
-        # Decode values from bytes
+        try:
+            b2 = int(hex_pairs[0], 16)  # Right score (BCD)
+            b3 = int(hex_pairs[1], 16)  # Left score (BCD)
+            b4 = int(hex_pairs[2], 16)  # Seconds (BCD)
+            b5 = int(hex_pairs[3], 16)  # Minutes (BCD)
+            b6 = int(hex_pairs[4], 16)  # Lamp bits
+            b7 = int(hex_pairs[5], 16)  # Match bits
+            b9 = int(hex_pairs[6], 16)  # Penalty bits
+        except ValueError as e:
+            logger.error(f"Invalid hex in scoreboard data: {hex_str} => {e}")
+            return {}
+
+        # Decode the BCD fields
         right_score = decode_bcd(b2)
         left_score = decode_bcd(b3)
         seconds = decode_bcd(b4)
@@ -169,35 +217,38 @@ class ScoreboardManager(QObject):
         return parsed_data
 
 
-# Utility functions for decoding BCD values and bit parsing
+# Helper functions for parsing the SFS-Link data
 def decode_bcd(bcd: int) -> int:
     """Decode a Binary-Coded Decimal (BCD) value."""
     return (bcd >> 4) * 10 + (bcd & 0x0F)
 
 def parse_lamp_bits(b6: int) -> dict:
-    """Parse lamp states from the 6th byte."""
+    """Parse 6th byte (b6) for lamp states."""
     return {
-        "left_white": bool(b6 & 0x01),
-        "right_white": bool(b6 & 0x02),
-        "left_red": bool(b6 & 0x04),
-        "right_green": bool(b6 & 0x08),
-        "right_yellow": bool(b6 & 0x10),
-        "left_yellow": bool(b6 & 0x20),
+        "left_white": bool(b6 & 0x01),  # D0
+        "right_white": bool(b6 & 0x02),  # D1
+        "left_red": bool(b6 & 0x04),  # D2
+        "right_green": bool(b6 & 0x08),  # D3
+        "right_yellow": bool(b6 & 0x10),  # D4
+        "left_yellow": bool(b6 & 0x20),  # D5
     }
 
 def parse_matches_and_priorities(b7: int) -> dict:
-    """Parse number of matches and priority lamps from the 7th byte."""
+    """Parse 7th byte (b7) for number of matches and priority lamps."""
+    num_matches = b7 & 0x03
+    right_priority = bool(b7 & 0x04)
+    left_priority = bool(b7 & 0x08)
     return {
-        "num_matches": b7 & 0x03,  # Bits D0-D1
-        "right_priority": bool(b7 & 0x04),  # Bit D2
-        "left_priority": bool(b7 & 0x08),  # Bit D3
+        "num_matches": num_matches,
+        "right_priority": right_priority,
+        "left_priority": left_priority,
     }
 
 def parse_penalty_bits(b9: int) -> dict:
-    """Parse penalty card lights from the 9th byte."""
+    """Parse 9th byte for red/yellow penalty card lights."""
     return {
-        "penalty_right_red": bool(b9 & 0x01),
-        "penalty_left_red": bool(b9 & 0x02),
-        "penalty_right_yellow": bool(b9 & 0x04),
-        "penalty_left_yellow": bool(b9 & 0x08),
+        "penalty_right_red": bool(b9 & 0x01),  # D0
+        "penalty_left_red": bool(b9 & 0x02),  # D1
+        "penalty_right_yellow": bool(b9 & 0x04),  # D2
+        "penalty_left_yellow": bool(b9 & 0x08),  # D3
     }
