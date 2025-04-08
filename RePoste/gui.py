@@ -71,7 +71,6 @@ class ScoreboardWidget(QWidget):
         score_row.addWidget(self.right_score_label)
         score_row.addWidget(self.right_flag)
 
-        # Main layout with match indicator centered below the score row
         main_layout = QVBoxLayout()
         main_layout.addLayout(score_row)
         main_layout.addWidget(
@@ -99,7 +98,6 @@ class ScoreboardWidget(QWidget):
         self.timer_label.setText(f"{minutes}:{seconds:02}")
         self.match_indicator.setText(str(num_matches))
 
-        # Set flag colors
         if penalty.get("penalty_left_red", False):
             self.left_flag.setStyleSheet(
                 "background: red; border-radius: 8px;"
@@ -161,7 +159,7 @@ class MainWindow(QMainWindow):
         self.main_layout.addWidget(self.video_feed)
 
         self.scoreboard = ScoreboardWidget(scoreboard_manager)
-        self.scoreboard.setFixedHeight(120)  # Adjust height to fit better
+        self.scoreboard.setFixedHeight(120)
         self.main_layout.addWidget(
             self.scoreboard,
             alignment=Qt.AlignmentFlag.AlignBottom
