@@ -16,7 +16,12 @@ logger = logging.getLogger()
 
 
 class VideoRecorder:
-    def __init__(self, fps: int = 60, buffer_duration: int = 5, output_dir: str = "output"):
+    def __init__(
+        self,
+        fps: int = 60,
+        buffer_duration: int = 5,
+        output_dir: str = "output",
+    ):
         self.fps = fps
         self.buffer = deque(maxlen=fps * buffer_duration)
         self.output_dir = output_dir
