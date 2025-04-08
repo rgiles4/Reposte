@@ -17,7 +17,7 @@ from scoreboard_manager import ScoreboardManager
 
 
 class ScoreboardWidget(QWidget):
-    def __init__(self):
+    def __init__(self, scoreboard_manager):
         super().__init__()
         self.init_ui()
 
@@ -95,19 +95,26 @@ class ScoreboardWidget(QWidget):
 
     def update_from_data(self, data):
         if not data:
-            return  # Prevent updating with empty data
+            return  # Prevent update if there's no data
         print(f"Updating scoreboard UI with data: {data}")
 
-        self.left_score_label.setText(str(data.get("left_score", 0)))
-        self.right_score_label.setText(str(data.get("right_score", 0)))
-        self.timer_label.setText(
-            f"{data.get('minutes', 0)}:{data.get('seconds', 0):02}"
-        )
-        self.match_indicator.setText(
-            str(data.get("match_bits", {}).get("num_matches", 1))
-        )
-
+        # Safely extract values with defaults
+        left_score = data.get("left_score", 0)
+        right_score = data.get("right_score", 0)
+        minutes = data.get("minutes", 0)
+        seconds = data.get("seconds", 0)
+        match_bits = data.get("match_bits", {})
+        num_matches = match_bits.get("num_matches", 1)
         lamp_bits = data.get("lamp_bits", {})
+        penalty = data.get("penalty", {})
+
+        # Update core labels
+        self.left_score_label.setText(str(left_score))
+        self.right_score_label.setText(str(right_score))
+        self.timer_label.setText(f"{minutes}:{seconds:02}")
+        self.match_indicator.setText(str(num_matches))
+
+        # Update trigger label based on lamp bits
         if lamp_bits.get("left_white") or lamp_bits.get("right_white"):
             self.trigger_label.setText("W")
             self.trigger_label.setStyleSheet(
@@ -122,16 +129,18 @@ class ScoreboardWidget(QWidget):
             self.trigger_label.setText("")
             self.trigger_label.setStyleSheet("background-color: transparent;")
 
-        penalty = data.get("penalty", {})
+        # Update card overlay visibility based on penalty bits
         red_card_active = penalty.get(
             "penalty_right_red", False
         ) or penalty.get("penalty_left_red", False)
         yellow_card_active = penalty.get(
             "penalty_right_yellow", False
         ) or penalty.get("penalty_left_yellow", False)
-
         self.red_card_overlay.setVisible(red_card_active)
         self.yellow_card_overlay.setVisible(yellow_card_active)
+
+        # One repaint should suffice
+        self.repaint()
 
         self.repaint()
         self.update()
@@ -144,6 +153,7 @@ class MainWindow(QMainWindow):
 
     def update_frame(self, pixmap):
         if pixmap:
+            # Scale the pixmap to fit the video feed while maintaining aspect ratio
             self.video_feed.setPixmap(
                 pixmap.scaled(
                     self.video_feed.size(), Qt.AspectRatioMode.KeepAspectRatio
@@ -154,7 +164,7 @@ class MainWindow(QMainWindow):
         settings_window = SettingsWindow(self.recorder)
         settings_window.exec()
 
-    def __init__(self):
+    def __init__(self, scoreboard_manager):
         super().__init__()
         self.setWindowTitle("RePoste")
         self.showFullScreen()
@@ -171,7 +181,7 @@ class MainWindow(QMainWindow):
         self.video_feed.setStyleSheet("background-color: black;")
         self.main_layout.addWidget(self.video_feed)
 
-        self.scoreboard = ScoreboardWidget()
+        self.scoreboard = ScoreboardWidget(scoreboard_manager)
         self.scoreboard.setFixedHeight(80)
         self.main_layout.addWidget(
             self.scoreboard,
@@ -182,12 +192,10 @@ class MainWindow(QMainWindow):
         self.settings_button = QPushButton()
         self.settings_button.setFocusPolicy(Qt.FocusPolicy.NoFocus)
         icon_path = os.path.abspath("../Reposte/images/cog-svgrepo-com.svg")
-
         if os.path.exists(icon_path):
             self.settings_button.setIcon(QIcon(icon_path))
         else:
             print(f"Warning: Icon not found at {icon_path}")
-
         self.settings_button.setIconSize(QSize(32, 32))
         self.settings_button.setFixedSize(40, 40)
         self.settings_button.clicked.connect(self.open_settings_window)
@@ -199,7 +207,8 @@ class MainWindow(QMainWindow):
         self.recorder = VideoRecorder()
         self.recorder.start_recording(self.update_frame)
 
-        self.scoreboard_manager = ScoreboardManager()
+        # Use the passed-in ScoreboardManager and set up the connection
+        self.scoreboard_manager = scoreboard_manager
         self.scoreboard_manager.scoreboard_updated.connect(
             self.update_scoreboard
         )
