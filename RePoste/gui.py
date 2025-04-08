@@ -23,82 +23,68 @@ class ScoreboardWidget(QWidget):
 
     def init_ui(self):
         self.setStyleSheet(
-            "background-color: rgba(0, 0, 0, 180); border-radius: 10px; padding: 5px;"
+            "background-color: rgba(0, 0, 0, 180); border-radius: 12px; padding: 10px;"
         )
 
-        score_font = QFont("Arial", 20, QFont.Weight.Bold)
-        trigger_font = QFont("Arial", 18, QFont.Weight.Bold)
+        font = QFont("Segoe UI", 24, QFont.Weight.Bold)
+        font.setLetterSpacing(QFont.SpacingType.AbsoluteSpacing, 1)
+
+        self.left_flag = QLabel()
+        self.left_flag.setFixedSize(35, 35)
+        self.left_flag.setStyleSheet(
+            "border-radius: 8px; background: transparent;"
+        )
+
+        self.right_flag = QLabel()
+        self.right_flag.setFixedSize(35, 35)
+        self.right_flag.setStyleSheet(
+            "border-radius: 8px; background: transparent;"
+        )
 
         self.left_score_label = QLabel("0")
-        self.left_score_label.setFont(score_font)
+        self.left_score_label.setFont(font)
         self.left_score_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        self.left_score_label.setStyleSheet("color: white;")
+        self.left_score_label.setStyleSheet("color: #ffffff;")
 
         self.right_score_label = QLabel("0")
-        self.right_score_label.setFont(score_font)
+        self.right_score_label.setFont(font)
         self.right_score_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        self.right_score_label.setStyleSheet("color: white;")
+        self.right_score_label.setStyleSheet("color: #ffffff;")
 
         self.timer_label = QLabel("3:00")
-        self.timer_label.setFont(score_font)
+        self.timer_label.setFont(QFont("Segoe UI", 24, QFont.Weight.Bold))
         self.timer_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        self.timer_label.setStyleSheet("color: white;")
+        self.timer_label.setStyleSheet("color: #ffffff;")
 
         self.match_indicator = QLabel("1")
-        self.match_indicator.setFont(score_font)
+        self.match_indicator.setFont(font)
         self.match_indicator.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        self.match_indicator.setStyleSheet("color: white;")
+        self.match_indicator.setStyleSheet("color: #ffffff;")
 
-        self.trigger_label = QLabel("")
-        self.trigger_label.setFont(trigger_font)
-        self.trigger_label.setFixedSize(40, 40)
-        self.trigger_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        self.trigger_label.setStyleSheet(
-            "background-color: transparent; color: white; border-radius: 20px;"
-        )
+        # Score row layout
+        score_row = QHBoxLayout()
+        score_row.addWidget(self.left_flag)
+        score_row.addWidget(self.left_score_label)
+        score_row.addStretch()
+        score_row.addWidget(self.timer_label)
+        score_row.addStretch()
+        score_row.addWidget(self.right_score_label)
+        score_row.addWidget(self.right_flag)
 
-        self.red_card_overlay = QLabel()
-        self.red_card_overlay.setFixedSize(80, 80)
-        self.red_card_overlay.setStyleSheet(
-            "background-color: transparent; border-radius: 10px;"
-        )
-        self.red_card_overlay.setVisible(False)
-
-        self.yellow_card_overlay = QLabel()
-        self.yellow_card_overlay.setFixedSize(80, 80)
-        self.yellow_card_overlay.setStyleSheet(
-            "background-color: transparent; border-radius: 10px;"
-        )
-        self.yellow_card_overlay.setVisible(False)
-
-        score_layout = QHBoxLayout()
-        score_layout.addWidget(self.left_score_label)
-        score_layout.addWidget(self.timer_label)
-        score_layout.addWidget(self.right_score_label)
-
+        # Main layout with match indicator centered below the score row
         main_layout = QVBoxLayout()
-        main_layout.addLayout(score_layout)
+        main_layout.addLayout(score_row)
         main_layout.addWidget(
             self.match_indicator, alignment=Qt.AlignmentFlag.AlignCenter
         )
 
-        final_layout = QVBoxLayout()
-        final_layout.addWidget(
-            self.red_card_overlay, alignment=Qt.AlignmentFlag.AlignCenter
-        )
-        final_layout.addWidget(
-            self.yellow_card_overlay, alignment=Qt.AlignmentFlag.AlignCenter
-        )
-        final_layout.addLayout(main_layout)
-
-        self.setLayout(final_layout)
+        self.setLayout(main_layout)
 
     def update_from_data(self, data):
         if not data:
-            return  # Prevent update if there's no data
+            return
         print(f"Updating scoreboard UI with data: {data}")
 
-        # Safely extract values with defaults
         left_score = data.get("left_score", 0)
         right_score = data.get("right_score", 0)
         minutes = data.get("minutes", 0)
@@ -108,42 +94,36 @@ class ScoreboardWidget(QWidget):
         lamp_bits = data.get("lamp_bits", {})
         penalty = data.get("penalty", {})
 
-        # Update core labels
         self.left_score_label.setText(str(left_score))
         self.right_score_label.setText(str(right_score))
         self.timer_label.setText(f"{minutes}:{seconds:02}")
         self.match_indicator.setText(str(num_matches))
 
-        # Update trigger label based on lamp bits
-        if lamp_bits.get("left_white") or lamp_bits.get("right_white"):
-            self.trigger_label.setText("W")
-            self.trigger_label.setStyleSheet(
-                "background-color: white; color: black; border-radius: 20px;"
+        # Set flag colors
+        if penalty.get("penalty_left_red", False):
+            self.left_flag.setStyleSheet(
+                "background: red; border-radius: 8px;"
             )
-        elif lamp_bits.get("left_red") or lamp_bits.get("right_green"):
-            self.trigger_label.setText("G")
-            self.trigger_label.setStyleSheet(
-                "background-color: green; color: white; border-radius: 20px;"
+        elif penalty.get("penalty_left_yellow", False):
+            self.left_flag.setStyleSheet(
+                "background: yellow; border-radius: 8px;"
             )
         else:
-            self.trigger_label.setText("")
-            self.trigger_label.setStyleSheet("background-color: transparent;")
+            self.left_flag.setStyleSheet("background: transparent;")
 
-        # Update card overlay visibility based on penalty bits
-        red_card_active = penalty.get(
-            "penalty_right_red", False
-        ) or penalty.get("penalty_left_red", False)
-        yellow_card_active = penalty.get(
-            "penalty_right_yellow", False
-        ) or penalty.get("penalty_left_yellow", False)
-        self.red_card_overlay.setVisible(red_card_active)
-        self.yellow_card_overlay.setVisible(yellow_card_active)
-
-        # One repaint should suffice
-        self.repaint()
+        if penalty.get("penalty_right_red", False):
+            self.right_flag.setStyleSheet(
+                "background: red; border-radius: 8px;"
+            )
+        elif penalty.get("penalty_right_yellow", False):
+            self.right_flag.setStyleSheet(
+                "background: yellow; border-radius: 8px;"
+            )
+        else:
+            self.right_flag.setStyleSheet("background: transparent;")
 
         self.repaint()
-        self.update()
+        # self.update()
 
 
 class MainWindow(QMainWindow):
@@ -153,7 +133,6 @@ class MainWindow(QMainWindow):
 
     def update_frame(self, pixmap):
         if pixmap:
-            # Scale the pixmap to fit the video feed while maintaining aspect ratio
             self.video_feed.setPixmap(
                 pixmap.scaled(
                     self.video_feed.size(), Qt.AspectRatioMode.KeepAspectRatio
@@ -182,7 +161,7 @@ class MainWindow(QMainWindow):
         self.main_layout.addWidget(self.video_feed)
 
         self.scoreboard = ScoreboardWidget(scoreboard_manager)
-        self.scoreboard.setFixedHeight(80)
+        self.scoreboard.setFixedHeight(120)  # Adjust height to fit better
         self.main_layout.addWidget(
             self.scoreboard,
             alignment=Qt.AlignmentFlag.AlignBottom
@@ -196,8 +175,8 @@ class MainWindow(QMainWindow):
             self.settings_button.setIcon(QIcon(icon_path))
         else:
             print(f"Warning: Icon not found at {icon_path}")
-        self.settings_button.setIconSize(QSize(32, 32))
-        self.settings_button.setFixedSize(40, 40)
+        self.settings_button.setIconSize(QSize(40, 40))
+        self.settings_button.setFixedSize(50, 50)
         self.settings_button.clicked.connect(self.open_settings_window)
         self.main_layout.addWidget(
             self.settings_button,
@@ -207,7 +186,6 @@ class MainWindow(QMainWindow):
         self.recorder = VideoRecorder()
         self.recorder.start_recording(self.update_frame)
 
-        # Use the passed-in ScoreboardManager and set up the connection
         self.scoreboard_manager = scoreboard_manager
         self.scoreboard_manager.scoreboard_updated.connect(
             self.update_scoreboard
