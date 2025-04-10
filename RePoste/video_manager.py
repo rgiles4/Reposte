@@ -7,7 +7,6 @@ from collections import deque
 from datetime import datetime
 import logging
 from typing import Callable, Optional
-from replay_manager import ReplayManager
 
 # Configure logging
 logging.basicConfig(
@@ -23,13 +22,6 @@ class VideoRecorder:
         buffer_duration: int = 5,
         output_dir: str = "output",
     ):
-        """
-        Initializes the VideoRecorder.
-        Args:
-            fps (int): Frames per second for video capture.
-            buffer_duration (int): Duration (in seconds) of the buffer.
-            output_dir (str): Directory to save replays.
-        """
         self.fps = fps
         self.buffer = deque(
             maxlen=fps * buffer_duration,
@@ -37,17 +29,28 @@ class VideoRecorder:
         self.output_dir = output_dir
         self.recording = False
         self.paused = False
+<<<<<<< HEAD
         # self.reader = None
 
         self.replay_manager = ReplayManager(fps, self.buffer, output_dir)
 
+=======
+        self.reader = None
+>>>>>>> origin/sgood-dev-new
         self.update_callback = None
+        self.replaying = False
+        self.replay_frames = []
+        self.replay_index = 0
+        self.replay_timer = None
+        self.replay_speed = 1.0
 
-        # Ensure output directory exists
         os.makedirs(output_dir, exist_ok=True)
 
     def start_recording(self, update_callback: Callable[[QPixmap], None]):
+<<<<<<< HEAD
         """Starts capturing video and updating the GUI."""
+=======
+>>>>>>> origin/sgood-dev-new
         try:
             self.recording = True
             self.paused = False
@@ -64,12 +67,11 @@ class VideoRecorder:
             self.recording = False
 
     def capture_frame(self):
-        """Captures a single frame and updates the GUI."""
         if not self.recording or self.paused:
             return
         try:
             frame = self.reader.get_next_data()
-            pixmap = self.replay_manager.convert_frame_to_pixmap(frame)
+            pixmap = self.convert_frame_to_pixmap(frame)
             self.update_callback(pixmap)
             self.buffer.append(frame)
             QTimer.singleShot(int(1000 / self.fps), self.capture_frame)
@@ -77,32 +79,32 @@ class VideoRecorder:
             logger.error(f"Error capturing frame: {e}")
 
     def pause_recording(self):
-        """Pauses the recording."""
         if self.recording:
             self.paused = True
             logger.info("Recording paused.")
 
     def resume_recording(self):
-        """Resumes the recording."""
         if self.recording and self.paused:
             self.paused = False
             self.capture_frame()
             logger.info("Recording resumed.")
 
     def stop_recording(self):
-        """Stops the recording."""
         self.recording = False
         if self.reader:
             self.reader.close()
         logger.info("Recording stopped.")
 
     def save_replay(self, filename: Optional[str] = None):
+<<<<<<< HEAD
         """
         Saves the buffered frames as a video file.
         Args:
             filename (str): The name of the saved replay file.
             If None, generates a timestamp-based name.
         """
+=======
+>>>>>>> origin/sgood-dev-new
         if not filename:
             timestamp = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
             filename = f"replay_{timestamp}.mp4"
@@ -117,6 +119,7 @@ class VideoRecorder:
             logger.error(f"Failed to save replay: {e}")
 
     def set_buffer_duration(self, duration: int):
+<<<<<<< HEAD
         """
         Adjusts the buffer duration and resets the buffer.
         Args:
@@ -129,10 +132,15 @@ class VideoRecorder:
         logger.info(
             f"🛠 Buffer duration set to {duration} seconds. Buffer pre-filled with blank frames."
         )
+=======
+        self.buffer = deque(maxlen=self.fps * duration)
+        logger.info(f"Buffer duration set to {duration} seconds.")
+>>>>>>> origin/sgood-dev-new
 
     def start_in_app_replay(
         self, update_callback: Optional[Callable[[QPixmap], None]] = None
     ):
+<<<<<<< HEAD
         """
         Plays back the frames currently in 'self.buffer'
         in the same GUI widget.
@@ -141,6 +149,8 @@ class VideoRecorder:
             frames (QPixmap) in the GUI.
             If None, uses self.update_callback from live capture.
         """
+=======
+>>>>>>> origin/sgood-dev-new
         if self.recording:
             self.stop_recording()
 
@@ -160,7 +170,6 @@ class VideoRecorder:
         self.show_replay_frame()
 
     def show_replay_frame(self):
-        """Displays a single frame from self.replay_frames by index."""
         if not self.replaying and (
             self.replay_index < 0
             or self.replay_index >= len(self.replay_frames)
@@ -185,7 +194,6 @@ class VideoRecorder:
             )
 
     def show_next_frame(self):
-        """Manually advance to the next frame in replay."""
         if self.replaying:
             self.replaying = False
             if self.replay_timer:
@@ -198,7 +206,6 @@ class VideoRecorder:
             logger.info("At the last frame of the replay.")
 
     def show_previous_frame(self):
-        """Manually go back to the previous frame in replay."""
         if self.replaying:
             self.replaying = False
             if self.replay_timer:
@@ -211,12 +218,15 @@ class VideoRecorder:
             logger.info("At the first frame of the replay.")
 
     def set_replay_speed(self, speed: float):
+<<<<<<< HEAD
         """Sets the speed of the replay."""
         self.replay_speed = round(speed, 1)
+=======
+        self.replay_speed = speed
+>>>>>>> origin/sgood-dev-new
         logger.info(f"Replay speed set to {speed}x.")
 
     def stop_in_app_replay(self, resume_live: bool = False):
-        """Stops the in-app replay and clears replay variables."""
         if self.replay_timer is not None:
             self.replay_timer.stop()
             self.replay_timer = None
@@ -228,8 +238,6 @@ class VideoRecorder:
             self.start_recording(self.update_callback)
 
     def convert_frame_to_pixmap(self, frame) -> QPixmap:
-        """Converts a frame to QPixmap and mirrors it horizontally."""
-        # Mirror the frame horizontally using NumPy
         mirrored_frame = np.fliplr(frame)
 
         height, width, channel = mirrored_frame.shape

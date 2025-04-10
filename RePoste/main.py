@@ -5,10 +5,14 @@ from PyQt6.QtWidgets import QApplication
 from gui import MainWindow
 from scoreboard_manager import ScoreboardManager
         
+<<<<<<< HEAD
         
+=======
+>>>>>>> origin/sgood-dev-new
 if __name__ == "__main__":
     # Initialize the QApplication
     app = QApplication([])
+<<<<<<< HEAD
 
     # Create an instance of ScoreboardManager and start it
     scoreboard_mgr = ScoreboardManager()
@@ -27,3 +31,18 @@ if __name__ == "__main__":
     # Stop the ScoreboardManager when the application exits
     scoreboard_mgr.stop()
     sys.exit(exit_code)
+=======
+    
+    # Create one instance of ScoreboardManager
+    scoreboard_mgr = ScoreboardManager()
+    
+    # Pass the instance to MainWindow (modify MainWindow to accept it)
+    window = MainWindow(scoreboard_manager=scoreboard_mgr)
+    window.show()
+    
+    try:
+        exit_code = app.exec()
+    finally:
+        scoreboard_mgr.stop()
+        sys.exit(exit_code)
+>>>>>>> origin/sgood-dev-new
