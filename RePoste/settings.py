@@ -81,8 +81,4 @@ class SettingsWindow(QDialog):
             "F11(Fn+F11)": "Toggle Fullscreen",
         })
 
-<<<<<<< HEAD
         return "\n".join([f"{key}: {action}" for key, action in keybinds.items()])
-=======
-        return "\n".join([f"{key}: {action}" for key, action in keybinds.items()])
->>>>>>> origin/sgood-dev-new

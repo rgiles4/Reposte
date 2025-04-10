@@ -29,14 +29,7 @@ class VideoRecorder:
         self.output_dir = output_dir
         self.recording = False
         self.paused = False
-<<<<<<< HEAD
-        # self.reader = None
-
-        self.replay_manager = ReplayManager(fps, self.buffer, output_dir)
-
-=======
         self.reader = None
->>>>>>> origin/sgood-dev-new
         self.update_callback = None
         self.replaying = False
         self.replay_frames = []
@@ -47,10 +40,6 @@ class VideoRecorder:
         os.makedirs(output_dir, exist_ok=True)
 
     def start_recording(self, update_callback: Callable[[QPixmap], None]):
-<<<<<<< HEAD
-        """Starts capturing video and updating the GUI."""
-=======
->>>>>>> origin/sgood-dev-new
         try:
             self.recording = True
             self.paused = False
@@ -96,15 +85,6 @@ class VideoRecorder:
         logger.info("Recording stopped.")
 
     def save_replay(self, filename: Optional[str] = None):
-<<<<<<< HEAD
-        """
-        Saves the buffered frames as a video file.
-        Args:
-            filename (str): The name of the saved replay file.
-            If None, generates a timestamp-based name.
-        """
-=======
->>>>>>> origin/sgood-dev-new
         if not filename:
             timestamp = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
             filename = f"replay_{timestamp}.mp4"
@@ -119,38 +99,12 @@ class VideoRecorder:
             logger.error(f"Failed to save replay: {e}")
 
     def set_buffer_duration(self, duration: int):
-<<<<<<< HEAD
-        """
-        Adjusts the buffer duration and resets the buffer.
-        Args:
-            duration (int): The new buffer duration in seconds.
-        """
-        self.buffer = deque(
-            maxlen=self.fps * duration,
-        )
-        self.replay_manager.buffer = self.buffer
-        logger.info(
-            f"🛠 Buffer duration set to {duration} seconds. Buffer pre-filled with blank frames."
-        )
-=======
         self.buffer = deque(maxlen=self.fps * duration)
         logger.info(f"Buffer duration set to {duration} seconds.")
->>>>>>> origin/sgood-dev-new
 
     def start_in_app_replay(
         self, update_callback: Optional[Callable[[QPixmap], None]] = None
     ):
-<<<<<<< HEAD
-        """
-        Plays back the frames currently in 'self.buffer'
-        in the same GUI widget.
-        Args:
-            update_callback (callable): A function to display
-            frames (QPixmap) in the GUI.
-            If None, uses self.update_callback from live capture.
-        """
-=======
->>>>>>> origin/sgood-dev-new
         if self.recording:
             self.stop_recording()
 
@@ -218,12 +172,7 @@ class VideoRecorder:
             logger.info("At the first frame of the replay.")
 
     def set_replay_speed(self, speed: float):
-<<<<<<< HEAD
-        """Sets the speed of the replay."""
-        self.replay_speed = round(speed, 1)
-=======
         self.replay_speed = speed
->>>>>>> origin/sgood-dev-new
         logger.info(f"Replay speed set to {speed}x.")
 
     def stop_in_app_replay(self, resume_live: bool = False):
