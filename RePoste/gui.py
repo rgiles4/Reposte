@@ -14,6 +14,8 @@ from PyQt6.QtGui import QFont, QIcon
 from video_manager import VideoRecorder
 from settings import SettingsWindow
 from scoreboard_manager import ScoreboardManager
+
+
 class ScoreboardWidget(QWidget):
     def __init__(self, scoreboard_manager):
         super().__init__()
@@ -31,20 +33,28 @@ class ScoreboardWidget(QWidget):
         # --- Left side ---
         self.left_red_flag = QLabel()
         self.left_red_flag.setFixedSize(30, 30)
-        self.left_red_flag.setStyleSheet("border-radius: 8px; background: transparent;")
+        self.left_red_flag.setStyleSheet(
+            "border-radius: 8px; background: transparent;"
+        )
 
         self.left_yellow_flag = QLabel()
         self.left_yellow_flag.setFixedSize(30, 30)
-        self.left_yellow_flag.setStyleSheet("border-radius: 8px; background: transparent;")
+        self.left_yellow_flag.setStyleSheet(
+            "border-radius: 8px; background: transparent;"
+        )
 
         # --- Right side ---
         self.right_red_flag = QLabel()
         self.right_red_flag.setFixedSize(30, 30)
-        self.right_red_flag.setStyleSheet("border-radius: 8px; background: transparent;")
+        self.right_red_flag.setStyleSheet(
+            "border-radius: 8px; background: transparent;"
+        )
 
         self.right_yellow_flag = QLabel()
         self.right_yellow_flag.setFixedSize(30, 30)
-        self.right_yellow_flag.setStyleSheet("border-radius: 8px; background: transparent;")
+        self.right_yellow_flag.setStyleSheet(
+            "border-radius: 8px; background: transparent;"
+        )
 
         self.left_score_label = QLabel("0")
         self.left_score_label.setFont(font)
@@ -88,7 +98,9 @@ class ScoreboardWidget(QWidget):
 
         main_layout = QVBoxLayout()
         main_layout.addLayout(score_row)
-        main_layout.addWidget(self.match_indicator, alignment=Qt.AlignmentFlag.AlignCenter)
+        main_layout.addWidget(
+            self.match_indicator, alignment=Qt.AlignmentFlag.AlignCenter
+        )
 
         self.setLayout(main_layout)
 
@@ -112,7 +124,9 @@ class ScoreboardWidget(QWidget):
 
         try:
             current_displayed_time = self.timer_label.text()
-            current_minutes, current_seconds = map(int, current_displayed_time.split(":"))
+            current_minutes, current_seconds = map(
+                int, current_displayed_time.split(":")
+            )
         except ValueError:
             current_minutes, current_seconds = 3, 0
 
@@ -122,7 +136,9 @@ class ScoreboardWidget(QWidget):
 
         # Only override minutes if bad
         if parsed_minutes > 10:
-            print(f"[WARNING] Minutes too high ({parsed_minutes}), keeping {current_minutes}")
+            print(
+                f"[WARNING] Minutes too high ({parsed_minutes}), keeping {current_minutes}"
+            )
             minutes = current_minutes
         else:
             minutes = parsed_minutes
@@ -132,16 +148,24 @@ class ScoreboardWidget(QWidget):
 
         # Update cards
         self.left_red_flag.setStyleSheet(
-            "background: red; border-radius: 8px;" if penalty.get("penalty_left_red") else "background: transparent; border-radius: 8px;"
+            "background: red; border-radius: 8px;"
+            if penalty.get("penalty_left_red")
+            else "background: transparent; border-radius: 8px;"
         )
         self.left_yellow_flag.setStyleSheet(
-            "background: yellow; border-radius: 8px;" if penalty.get("penalty_left_yellow") else "background: transparent; border-radius: 8px;"
+            "background: yellow; border-radius: 8px;"
+            if penalty.get("penalty_left_yellow")
+            else "background: transparent; border-radius: 8px;"
         )
         self.right_red_flag.setStyleSheet(
-            "background: red; border-radius: 8px;" if penalty.get("penalty_right_red") else "background: transparent; border-radius: 8px;"
+            "background: red; border-radius: 8px;"
+            if penalty.get("penalty_right_red")
+            else "background: transparent; border-radius: 8px;"
         )
         self.right_yellow_flag.setStyleSheet(
-            "background: yellow; border-radius: 8px;" if penalty.get("penalty_right_yellow") else "background: transparent; border-radius: 8px;"
+            "background: yellow; border-radius: 8px;"
+            if penalty.get("penalty_right_yellow")
+            else "background: transparent; border-radius: 8px;"
         )
 
         self.repaint()
