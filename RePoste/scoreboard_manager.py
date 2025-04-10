@@ -63,7 +63,9 @@ class ScoreboardManager(QObject):
         try:
             self.loop.run_until_complete(self._main_task())
         except Exception as e:
-            logger.error(f"Exception in scoreboard manager loop: {e}", exc_info=True)
+            logger.error(
+                f"Exception in scoreboard manager loop: {e}", exc_info=True
+            )
         finally:
             self.loop.close()
 
@@ -71,11 +73,15 @@ class ScoreboardManager(QObject):
         logger.info("Scanning for BLE devices...")
         target_device = await self._find_target_device()
         if not target_device:
-            logger.error(f"Device with name {SFS_DEVICE_NAME} or address {SFS_ADDRESS} not found.")
+            logger.error(
+                f"Device with name {SFS_DEVICE_NAME} or address {SFS_ADDRESS} not found."
+            )
             self.running = False
             return
 
-        logger.info(f"Connecting to device {target_device.name} at {target_device.address}")
+        logger.info(
+            f"Connecting to device {target_device.name} at {target_device.address}"
+        )
         async with BleakClient(target_device.address) as client:
             self.client = client
             if not client.is_connected:
@@ -90,13 +96,23 @@ class ScoreboardManager(QObject):
             for service in client.services:
                 logger.info(f"Service: {service.uuid}")
                 for char in service.characteristics:
-                    logger.info(f"  Characteristic: {char.uuid} - Properties: {char.properties}")
+                    logger.info(
+                        f"  Characteristic: {char.uuid} - Properties: {char.properties}"
+                    )
 
             # Validate and read the characteristic
-            if SFS_CHARACTERISTIC_UUID in [char.uuid for service in client.services for char in service.characteristics]:
-                await self._poll_characteristic(client, SFS_CHARACTERISTIC_UUID)
+            if SFS_CHARACTERISTIC_UUID in [
+                char.uuid
+                for service in client.services
+                for char in service.characteristics
+            ]:
+                await self._poll_characteristic(
+                    client, SFS_CHARACTERISTIC_UUID
+                )
             else:
-                logger.error(f"Characteristic {SFS_CHARACTERISTIC_UUID} not found on the device.")
+                logger.error(
+                    f"Characteristic {SFS_CHARACTERISTIC_UUID} not found on the device."
+                )
                 self.running = False
 
         self.client = None
@@ -116,9 +132,12 @@ class ScoreboardManager(QObject):
                 value = await client.read_gatt_char(uuid)
                 self._notification_handler(0, value)
             except Exception as read_err:
-                logger.error(f"Error reading characteristic {uuid}: {read_err}", exc_info=True)
+                logger.error(
+                    f"Error reading characteristic {uuid}: {read_err}",
+                    exc_info=True,
+                )
                 break
-            await asyncio.sleep(0.9)  # Adjust the polling interval as needed
+            await asyncio.sleep(0.01)
 
     def _notification_handler(self, sender: int, data: bytearray):
         """
@@ -129,7 +148,9 @@ class ScoreboardManager(QObject):
         raw_str = data.decode("ascii", errors="ignore").strip()
         logger.info(f"Raw characteristic value: {raw_str}")
         if len(raw_str) != 14:
-            logger.warning(f"Unexpected scoreboard data len={len(raw_str)}: {raw_str}")
+            logger.warning(
+                f"Unexpected scoreboard data len={len(raw_str)}: {raw_str}"
+            )
             return
 
         if raw_str == "00000000000000":
@@ -160,31 +181,36 @@ class ScoreboardManager(QObject):
             logger.error(f"Invalid hex in scoreboard data: {hex_str} => {e}")
             return {}
 
-        #Decode the BCD fields
+        # Decode the BCD fields
         right_score = decode_bcd(b2)
         left_score = decode_bcd(b3)
         seconds = decode_bcd(b4)
         minutes = decode_bcd(b5)
         lamp_bits = parse_lamp_bits(b6)
         match_bits = parse_matches_and_priorities(b7)
-        penalty = parse_penalty_bits(b9)    
+        penalty = parse_penalty_bits(b9)
+
+        formatted_seconds = f"{seconds:02}"
+        formatted_minutes = f"{minutes:02}"
 
         parsed_data = {
             "right_score": right_score,
-            "left_score":  left_score,
-            "seconds":     seconds,
-            "minutes":     minutes,
-            "lamp_bits":   lamp_bits,
-            "match_bits":  match_bits,
-            "penalty":     penalty,
+            "left_score": left_score,
+            "seconds": formatted_seconds,
+            "minutes": formatted_minutes,
+            "lamp_bits": lamp_bits,
+            "match_bits": match_bits,
+            "penalty": penalty,
         }
-        return(parsed_data)
-        #print(parsed_data) #TEST PRINT GO BRR
+        return parsed_data
+        # print(parsed_data) #TEST PRINT GO BRR
 
-# Helper functions for parsing the SFS-Link data  
+
+# Helper functions for parsing the SFS-Link data
 def decode_bcd(bcd: int) -> int:
     """Decode a Binary-Coded Decimal (BCD) value."""
     return (bcd >> 4) * 10 + (bcd & 0x0F)
+
 
 def parse_lamp_bits(b6: int) -> dict:
     """
@@ -192,15 +218,15 @@ def parse_lamp_bits(b6: int) -> dict:
     Returns dictionary indicating which lamps are ON (True) or OFF (False).
     """
     return {
-        
-        "left_white": bool(b6 & 0x01),# D0
-        "right_white": bool(b6 & 0x02),# D1
-        "left_red": bool(b6 & 0x04), # D2
+        "left_white": bool(b6 & 0x01),  # D0
+        "right_white": bool(b6 & 0x02),  # D1
+        "left_red": bool(b6 & 0x04),  # D2
         "right_green": bool(b6 & 0x08),  # D3
-        "right_yellow": bool(b6 & 0x10), # D4 
-        "left_yellow": bool(b6 & 0x20), # D5 
+        "right_yellow": bool(b6 & 0x10),  # D4
+        "left_yellow": bool(b6 & 0x20),  # D5
         # D6 and D7 are not used
     }
+
 
 def parse_matches_and_priorities(b7: int) -> dict:
     """
@@ -213,17 +239,18 @@ def parse_matches_and_priorities(b7: int) -> dict:
       D4..D7 => unused
     """
     # bits D0..D1 (mask 0b0011)
-    num_matches = b7 & 0x03 
+    num_matches = b7 & 0x03
     # bit D2 (0b0100)
-    right_priority = bool(b7 & 0x04)  
+    right_priority = bool(b7 & 0x04)
     # bit D3 (0b1000)
-    left_priority  = bool(b7 & 0x08)  
+    left_priority = bool(b7 & 0x08)
 
     return {
         "num_matches": num_matches,
         "right_priority": right_priority,
-        "left_priority": left_priority
+        "left_priority": left_priority,
     }
+
 
 def parse_penalty_bits(b9: int) -> dict:
     """
@@ -237,8 +264,8 @@ def parse_penalty_bits(b9: int) -> dict:
     Bits D4..D7 are ignored/unused as per doc.
     """
     return {
-        "penalty_right_red": bool(b9 & 0x01),# D0
-        "penalty_left_red": bool(b9 & 0x02), # D1
+        "penalty_right_red": bool(b9 & 0x01),  # D0
+        "penalty_left_red": bool(b9 & 0x02),  # D1
         "penalty_right_yellow": bool(b9 & 0x04),  # D2
-        "penalty_left_yellow": bool(b9 & 0x08),# D3
+        "penalty_left_yellow": bool(b9 & 0x08),  # D3
     }

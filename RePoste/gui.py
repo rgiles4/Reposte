@@ -116,11 +116,11 @@ class ScoreboardWidget(QWidget):
         except ValueError:
             current_minutes, current_seconds = 3, 0
 
-        # ⚡ Always trust parsed seconds
-        parsed_minutes = minutes
-        parsed_seconds = seconds
+        # Always trust parsed seconds
+        parsed_minutes = int(minutes)
+        parsed_seconds = int(seconds)
 
-        # ⚡ Only override minutes if bad
+        # Only override minutes if bad
         if parsed_minutes > 10:
             print(f"[WARNING] Minutes too high ({parsed_minutes}), keeping {current_minutes}")
             minutes = current_minutes
