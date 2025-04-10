@@ -116,38 +116,36 @@ class ScoreboardWidget(QWidget):
         except ValueError:
             current_minutes, current_seconds = 3, 0
 
-        if minutes > 10:
-            print(f"[WARNING] Minutes field too high ({minutes}), resetting to 3.")
+        # ⚡ Always trust parsed seconds
+        parsed_minutes = minutes
+        parsed_seconds = seconds
+
+        # ⚡ Only override minutes if bad
+        if parsed_minutes > 10:
+            print(f"[WARNING] Minutes too high ({parsed_minutes}), keeping {current_minutes}")
             minutes = current_minutes
-            seconds = current_seconds
-        self.timer_label.setText(f"{minutes}:{seconds:02}")
-        self.match_indicator.setText(str(num_matches))
-
-        # Left Red
-        if penalty.get("penalty_left_red", False):
-            self.left_red_flag.setStyleSheet("background: red; border-radius: 8px;")
         else:
-            self.left_red_flag.setStyleSheet("background: transparent; border-radius: 8px;")
+            minutes = parsed_minutes
 
-        # Left Yellow
-        if penalty.get("penalty_left_yellow", False):
-            self.left_yellow_flag.setStyleSheet("background: yellow; border-radius: 8px;")
-        else:
-            self.left_yellow_flag.setStyleSheet("background: transparent; border-radius: 8px;")
+        # seconds = parsed_seconds no matter what
+        self.timer_label.setText(f"{minutes}:{parsed_seconds:02}")
 
-        # Right Red
-        if penalty.get("penalty_right_red", False):
-            self.right_red_flag.setStyleSheet("background: red; border-radius: 8px;")
-        else:
-            self.right_red_flag.setStyleSheet("background: transparent; border-radius: 8px;")
-
-        # Right Yellow
-        if penalty.get("penalty_right_yellow", False):
-            self.right_yellow_flag.setStyleSheet("background: yellow; border-radius: 8px;")
-        else:
-            self.right_yellow_flag.setStyleSheet("background: transparent; border-radius: 8px;")
+        # Update cards
+        self.left_red_flag.setStyleSheet(
+            "background: red; border-radius: 8px;" if penalty.get("penalty_left_red") else "background: transparent; border-radius: 8px;"
+        )
+        self.left_yellow_flag.setStyleSheet(
+            "background: yellow; border-radius: 8px;" if penalty.get("penalty_left_yellow") else "background: transparent; border-radius: 8px;"
+        )
+        self.right_red_flag.setStyleSheet(
+            "background: red; border-radius: 8px;" if penalty.get("penalty_right_red") else "background: transparent; border-radius: 8px;"
+        )
+        self.right_yellow_flag.setStyleSheet(
+            "background: yellow; border-radius: 8px;" if penalty.get("penalty_right_yellow") else "background: transparent; border-radius: 8px;"
+        )
 
         self.repaint()
+
 
 class MainWindow(QMainWindow):
     def update_scoreboard(self, data):
