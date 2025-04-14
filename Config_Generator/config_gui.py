@@ -63,7 +63,7 @@ class Config_Generator(QWidget):
             border-radius: 6px;
             padding: 5px;
         }
-        
+
         QComboBox:hover {
             background-color: #e0e0e0;
         }

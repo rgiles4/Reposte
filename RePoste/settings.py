@@ -6,6 +6,11 @@ from PyQt6.QtWidgets import (
     QLabel,
     QFormLayout,
     QDialogButtonBox,
+    QDialog,
+    QVBoxLayout,
+    QLabel,
+    QFormLayout,
+    QDialogButtonBox,
 )
 
 
@@ -16,6 +21,9 @@ class SettingsWindow(QDialog):
     """
 
     CONFIG_DIR = os.path.join(os.path.dirname(__file__), "config")
+    CONFIG_FILE = os.path.join(
+        CONFIG_DIR, "camera_config.json"
+    )  # Adjust path
     CONFIG_FILE = os.path.join(
         CONFIG_DIR, "camera_config.json"
     )  # Adjust path
@@ -43,6 +51,9 @@ class SettingsWindow(QDialog):
         self.microphone_label = QLabel(
             self.config.get("microphone", "Unknown Microphone")
         )
+        self.microphone_label = QLabel(
+            self.config.get("microphone", "Unknown Microphone")
+        )
         form_layout.addRow("Microphone Source:", self.microphone_label)
 
         # Keybinds
@@ -55,6 +66,9 @@ class SettingsWindow(QDialog):
         form_layout.addRow("FPS Lock:", self.fps_label)
 
         # Buffer Duration
+        buffer_duration = (
+            len(self.video_recorder.buffer) // self.video_recorder.fps
+        )
         buffer_duration = (
             len(self.video_recorder.buffer) // self.video_recorder.fps
         )
@@ -94,6 +108,9 @@ class SettingsWindow(QDialog):
             },
         )
 
+        return "\n".join(
+            [f"{key}: {action}" for key, action in keybinds.items()]
+        )
         return "\n".join(
             [f"{key}: {action}" for key, action in keybinds.items()]
         )
