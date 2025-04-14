@@ -214,9 +214,7 @@ class MainWindow(QMainWindow):
         )
 
         self.settings_button = QPushButton()
-        self.settings_button.setFocusPolicy(
-            Qt.FocusPolicy.NoFocus
-        )  # Prevent Space from triggering it
+        self.settings_button.setFocusPolicy(Qt.FocusPolicy.NoFocus)
         icon_path = os.path.abspath("../Reposte/images/cog-svgrepo-com.svg")
         if os.path.exists(icon_path):
             self.settings_button.setIcon(QIcon(icon_path))
@@ -236,23 +234,6 @@ class MainWindow(QMainWindow):
         self.scoreboard_manager = scoreboard_manager
         self.scoreboard_manager.scoreboard_updated.connect(
             self.update_scoreboard
-        )
-
-    def open_settings_window(self):
-        """Open the settings window and pass video recorder settings."""
-        settings_window = SettingsWindow(
-            self.recorder
-        )  # Pass the video_recorder instance
-        settings_window.exec()
-
-    def update_frame(self, pixmap):
-        """Update video feed to fill the label proportionally."""
-        label_size = self.video_feed.size()
-        scaled_pixmap = pixmap.scaled(
-            label_size.width(),
-            label_size.height(),
-            Qt.AspectRatioMode.KeepAspectRatio,
-            Qt.TransformationMode.SmoothTransformation,
         )
         self.scoreboard_manager.start()
 
@@ -275,9 +256,6 @@ class MainWindow(QMainWindow):
         elif key == Qt.Key.Key_0:
             self.recorder.set_replay_speed(1.0)
         elif Qt.Key.Key_1 <= key <= Qt.Key.Key_9:
-            self.recorder.set_replay_speed(
-                round((key - Qt.Key.Key_0) * 0.1, 1)
-            )
             self.recorder.set_replay_speed(
                 round((key - Qt.Key.Key_0) * 0.1, 1)
             )

@@ -48,9 +48,6 @@ class VideoRecorder:
             # Try initializing with imageio first
             self.reader = imageio.get_reader("<video0>", "ffmpeg")
             logger.info("Successfully initialized video reader with imageio.")
-            # Try initializing with imageio first
-            self.reader = imageio.get_reader("<video0>", "ffmpeg")
-            logger.info("Successfully initialized video reader with imageio.")
 
             self.capture_frame()
             logger.info("Recording started.")
