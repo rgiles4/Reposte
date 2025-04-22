@@ -5,12 +5,7 @@ from PyQt6.QtWidgets import (
     QVBoxLayout,
     QLabel,
     QFormLayout,
-    QDialogButtonBox,
-    QDialog,
-    QVBoxLayout,
-    QLabel,
-    QFormLayout,
-    QDialogButtonBox,
+    QDialogButtonBox
 )
 
 
@@ -51,9 +46,6 @@ class SettingsWindow(QDialog):
         self.microphone_label = QLabel(
             self.config.get("microphone", "Unknown Microphone")
         )
-        self.microphone_label = QLabel(
-            self.config.get("microphone", "Unknown Microphone")
-        )
         form_layout.addRow("Microphone Source:", self.microphone_label)
 
         # Keybinds
@@ -66,9 +58,6 @@ class SettingsWindow(QDialog):
         form_layout.addRow("FPS Lock:", self.fps_label)
 
         # Buffer Duration
-        buffer_duration = (
-            len(self.video_recorder.buffer) // self.video_recorder.fps
-        )
         buffer_duration = (
             len(self.video_recorder.buffer) // self.video_recorder.fps
         )
