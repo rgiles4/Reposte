@@ -24,7 +24,9 @@ class ScoreboardWidget(QWidget):
 
     def init_ui(self):
         self.setStyleSheet(
-            "background-color: rgba(0, 0, 0, 180); border-radius: 12px; padding: 10px;"
+            "background-color: rgba(0, 0, 0, 180);"
+            "border-radius: 12px;"
+            "padding: 10px;"
         )
 
         font = QFont("Segoe UI", 24, QFont.Weight.Bold)
@@ -136,9 +138,7 @@ class ScoreboardWidget(QWidget):
 
         # Only override minutes if bad
         if parsed_minutes > 10:
-            print(
-                f"[WARNING] Minutes too high ({parsed_minutes}), keeping {current_minutes}"
-            )
+            print(f"[WARNING] ({parsed_minutes}) to high")
             minutes = current_minutes
         else:
             minutes = parsed_minutes
@@ -180,7 +180,8 @@ class MainWindow(QMainWindow):
         if pixmap:
             self.video_feed.setPixmap(
                 pixmap.scaled(
-                    self.video_feed.size(), Qt.AspectRatioMode.KeepAspectRatio
+                    self.video_feed.size(),
+                    Qt.AspectRatioMode.KeepAspectRatio
                 )
             )
 
@@ -225,7 +226,7 @@ class MainWindow(QMainWindow):
         self.settings_button.clicked.connect(self.open_settings_window)
         self.main_layout.addWidget(
             self.settings_button,
-            alignment=Qt.AlignmentFlag.AlignTop | Qt.AlignmentFlag.AlignRight,
+            alignment=Qt.AlignmentFlag.AlignRight,
         )
 
         self.recorder = VideoRecorder()
