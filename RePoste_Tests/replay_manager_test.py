@@ -86,7 +86,7 @@ def test_stop_in_app_replay(replay_manager):
         )
 
     # Assert
-    assert replay_manager.replaying is False, "Replaying flag should be False"
+    assert replay_manager.replaying is False, "Replay flag should be False"
     assert isinstance(
         replay_manager.replay_frames, list
     ), "replay_frames should be a list"
