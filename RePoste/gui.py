@@ -13,7 +13,6 @@ from PyQt6.QtGui import QFont, QIcon
 
 from video_manager import VideoRecorder
 from settings import SettingsWindow
-from scoreboard_manager import ScoreboardManager
 
 
 class ScoreboardWidget(QWidget):
@@ -137,11 +136,14 @@ class ScoreboardWidget(QWidget):
         parsed_seconds = int(seconds)
 
         # Only override minutes if bad
+        #TODO: Check for bug as current seconds isnt tested here
         if parsed_minutes > 10:
             print(f"[WARNING] ({parsed_minutes}) to high")
             minutes = current_minutes
+            seconds = current_seconds
         else:
             minutes = parsed_minutes
+            seconds = parsed_seconds
 
         # seconds = parsed_seconds no matter what
         self.timer_label.setText(f"{minutes}:{parsed_seconds:02}")
