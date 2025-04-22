@@ -1,4 +1,3 @@
-import pytest
 from scoreboard_manager import (
     decode_bcd,
     parse_lamp_bits,

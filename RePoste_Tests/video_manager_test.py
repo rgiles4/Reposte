@@ -80,11 +80,16 @@ def test_capture_frame_success(recorder):
         # Ensure frame retrieval
         recorder.reader.get_next_data.assert_called_once()
         # Ensure conversion
+        # fmt: off
         (
-            recorder.replay_manager.convert_frame_to_pixmap.assert_called_once_with(
+            recorder.replay_manager \
+            .convert_frame_to_pixmap \
+            .assert_called_once_with(
                 mock_frame
             )
         )
+        # fmt: on
+
         # Ensure GUI update
         recorder.update_callback.assert_called_once_with(mock_pixmap)
 
