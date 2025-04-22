@@ -59,7 +59,7 @@ def test_frame_update(create_app):
     ), f"❌ Scaled pixmap has invalid width: {scaled_pixmap_passed.width()}"
     assert (
         scaled_pixmap_passed.height() > 0
-    ), f"❌ Scaled pixmap has invalid height: {scaled_pixmap_passed.height()}"
+    ), f"❌ Scaled pixmap has invalid height:{scaled_pixmap_passed.height()}"
 
 
 def test_open_settings_window(mocker):
