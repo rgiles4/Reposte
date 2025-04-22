@@ -55,13 +55,16 @@ def test_main(mock_app_and_window):
     ), "❌ Expected QApplication to be called once with an empty list."
 
     # ScoreboardManager instantiation and method calls
-    mock_scoreboard_mgr.assert_called_once(), 
-        ("❌ Expected ScoreboardManager to be instantiated once.")
-    mock_scoreboard_mgr_instance.start.assert_called_once(), "❌ Expected ScoreboardManager.start() to be called."
+    mock_scoreboard_mgr.assert_called_once(),
+    ("❌ Expected ScoreboardManager to be instantiated once.")
+    mock_scoreboard_mgr_instance.start.assert_called_once(),
+    ("❌ Expected ScoreboardManager.start() to be called.")
 
     # MainWindow instantiation and show call
-    mock_main_window.assert_called_once(), "❌ Expected MainWindow to be instantiated once."
-    mock_window_instance.show.assert_called_once(), "❌ Expected the show() method of MainWindow to be called once."
+    mock_main_window.assert_called_once(),
+    ("❌ Expected MainWindow to be instantiated once.")
+    mock_window_instance.show.assert_called_once(),
+    ("❌ Expected the show() method of MainWindow to be called once.")
 
     # sys.exit() is called with app.exec() return value
     mock_exit.assert_called_once_with(mock_app_instance.exec.return_value), (
@@ -70,4 +73,5 @@ def test_main(mock_app_and_window):
     )
 
     # Assert ScoreboardManager stops on app exit
-    mock_scoreboard_mgr_instance.stop.assert_called_once(), "❌ Expected ScoreboardManager.stop() to be called on exit."
+    mock_scoreboard_mgr_instance.stop.assert_called_once(),
+    ("❌ Expected ScoreboardManager.stop() to be called on exit.")
