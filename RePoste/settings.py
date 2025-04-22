@@ -5,7 +5,7 @@ from PyQt6.QtWidgets import (
     QVBoxLayout,
     QLabel,
     QFormLayout,
-    QDialogButtonBox
+    QDialogButtonBox,
 )
 
 
