@@ -66,9 +66,6 @@ class ScoreboardManager(QObject):
             logger.error(
                 f"Exception in scoreboard manager loop: {e}", exc_info=True
             )
-            logger.error(
-                f"Exception in scoreboard manager loop: {e}", exc_info=True
-            )
         finally:
             self.loop.close()
 
@@ -177,7 +174,6 @@ class ScoreboardManager(QObject):
             return {}
 
         try:
-
             b2 = int(hex_pairs[0], 16)  # Right score (BCD)
             b3 = int(hex_pairs[1], 16)  # Left score (BCD)
             b4 = int(hex_pairs[2], 16)  # Seconds (BCD)
@@ -212,8 +208,6 @@ class ScoreboardManager(QObject):
         }
         return parsed_data
         # print(parsed_data) #TEST PRINT GO BRR
-        return parsed_data
-        # print(parsed_data) #TEST PRINT GO BRR
 
 
 # Helper functions for parsing the SFS-Link data
@@ -231,12 +225,7 @@ def parse_lamp_bits(b6: int) -> dict:
         "left_white": bool(b6 & 0x01),  # D0
         "right_white": bool(b6 & 0x02),  # D1
         "left_red": bool(b6 & 0x04),  # D2
-        "left_white": bool(b6 & 0x01),  # D0
-        "right_white": bool(b6 & 0x02),  # D1
-        "left_red": bool(b6 & 0x04),  # D2
         "right_green": bool(b6 & 0x08),  # D3
-        "right_yellow": bool(b6 & 0x10),  # D4
-        "left_yellow": bool(b6 & 0x20),  # D5
         "right_yellow": bool(b6 & 0x10),  # D4
         "left_yellow": bool(b6 & 0x20),  # D5
         # D6 and D7 are not used
@@ -268,7 +257,6 @@ def parse_matches_and_priorities(b7: int) -> dict:
         "num_matches": num_matches,
         "right_priority": right_priority,
         "left_priority": left_priority,
-        "left_priority": left_priority,
     }
 
 
@@ -286,9 +274,6 @@ def parse_penalty_bits(b9: int) -> dict:
     return {
         "penalty_right_red": bool(b9 & 0x01),  # D0
         "penalty_left_red": bool(b9 & 0x02),  # D1
-        "penalty_right_red": bool(b9 & 0x01),  # D0
-        "penalty_left_red": bool(b9 & 0x02),  # D1
         "penalty_right_yellow": bool(b9 & 0x04),  # D2
-        "penalty_left_yellow": bool(b9 & 0x08),  # D3
         "penalty_left_yellow": bool(b9 & 0x08),  # D3
     }
