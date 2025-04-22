@@ -136,7 +136,7 @@ class ScoreboardWidget(QWidget):
         parsed_seconds = int(seconds)
 
         # Only override minutes if bad
-        #TODO: Check for bug as current seconds isnt tested here
+        # TODO: Check for bug as current seconds isnt tested here
         if parsed_minutes > 10:
             print(f"[WARNING] ({parsed_minutes}) to high")
             minutes = current_minutes
@@ -183,7 +183,6 @@ class MainWindow(QMainWindow):
             size = self.video_feed.size()
             scaled = pixmap.scaled(size, Qt.AspectRatioMode.KeepAspectRatio)
             self.video_feed.setPixmap(scaled)
-
 
     def open_settings_window(self):
         settings_window = SettingsWindow(self.recorder)
