@@ -1,0 +1,4 @@
+{
+    "name": "USB2.0 HD UVC WebCam",
+    "camera_path": "@device_pnp_\\\\?\\usb#vid_13d3&pid_5463&mi_00#7&2d27d791&0&0000#{65e8773d-8f56-11d0-a3b9-00a0c9223196}\\global"
+}

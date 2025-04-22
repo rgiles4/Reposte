@@ -1,12 +1,8 @@
 import pytest
-
-# Import required library classes
 from unittest.mock import MagicMock
 from PyQt6.QtGui import QPixmap, QKeyEvent
 from PyQt6.QtCore import Qt
 from PyQt6.QtWidgets import QApplication
-
-# Import gui.py class
 from RePoste.gui import MainWindow
 
 
@@ -19,20 +15,13 @@ def create_app():
 def test_frame_update(create_app):
     # Arrange
     window = MainWindow()
-
-    # Mock QPixmap
     mock_pixmap = MagicMock(spec=QPixmap)
     mock_pixmap.width.return_value = 1920  # Mock width return value
     mock_pixmap.height.return_value = 1080  # Mock height return value
-
-    # Mock the scaled method to return the mock_pixmap itself
     scaled_pixmap = MagicMock(spec=QPixmap)
     scaled_pixmap.width.return_value = 1920
     scaled_pixmap.height.return_value = 1080
-
-    # Mock the scaled method of QPixmap to return the scaled_pixmap
     mock_pixmap.scaled.return_value = scaled_pixmap
-
     window.video_feed.setPixmap = MagicMock()
 
     # Act
@@ -42,7 +31,7 @@ def test_frame_update(create_app):
     window.video_feed.setPixmap.assert_called_once()
     scaled_pixmap_passed = window.video_feed.setPixmap.call_args[0][0]
 
-    # Assert that scaled_pixmap is actually a MagicMock and that the
+    # Check scaled_pixmap is actually a MagicMock and that the
     # return values are correct
     assert isinstance(
         scaled_pixmap_passed, MagicMock
@@ -70,12 +59,25 @@ def test_frame_update(create_app):
     ), f"❌ Scaled pixmap has invalid width: {scaled_pixmap_passed.width()}"
     assert (
         scaled_pixmap_passed.height() > 0
-    ), f"❌ Scaled pixmap has invalid height: {scaled_pixmap_passed.height()}"
-
-    print("✅ update_frame() successfully updated the video feed!")
+    ), f"❌ Scaled pixmap has invalid height:{scaled_pixmap_passed.height()}"
 
 
-# Parameters for test_keyPressEvent
+def test_open_settings_window(mocker):
+    # Arrange
+    window = MainWindow()
+    mock_settings_window = mocker.patch(
+        "RePoste.gui.SettingsWindow", autospec=True
+    )
+    instance = mock_settings_window.return_value  # Mocked instance
+
+    # Act
+    window.open_settings_window()
+
+    # Assert
+    mock_settings_window.assert_called_once()
+    instance.exec.assert_called_once()
+
+
 @pytest.mark.parametrize(
     "key, method",
     [
@@ -93,8 +95,6 @@ def test_keyPressEvent(key, method):
     # Arrange
     window = MainWindow()
     window.recorder = MagicMock()
-
-    # QKeyEvent for Key Press
     event = QKeyEvent(
         QKeyEvent.Type.KeyPress, key, Qt.KeyboardModifier.NoModifier
     )
@@ -105,10 +105,7 @@ def test_keyPressEvent(key, method):
     # Assert
     getattr(window.recorder, method).assert_called_once()
 
-    print("✅ keyPressEvent() successfully called all methods!")
 
-
-# Parameters for set_replay_speed
 @pytest.mark.parametrize(
     "key, expected_speed",
     [
@@ -135,7 +132,5 @@ def test_keyPressEvent_setReplaySpeed(key, expected_speed):
     )
     window.keyPressEvent(event)
 
-    # Assert ???
+    # Assert
     window.recorder.set_replay_speed.assert_called_once_with(expected_speed)
-
-    print("✅ keyPressEvent() successfully adjusted replay speed!")
