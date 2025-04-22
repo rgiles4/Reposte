@@ -111,6 +111,3 @@ class SettingsWindow(QDialog):
         return "\n".join(
             [f"{key}: {action}" for key, action in keybinds.items()]
         )
-        return "\n".join(
-            [f"{key}: {action}" for key, action in keybinds.items()]
-        )
