@@ -21,7 +21,7 @@ class ScoreboardManager(QObject):
     Emits a PyQt signal whenever new scoreboard data arrives.
     """
 
-    scoreboard_updated = pyqtSignal(dict)  # scoreboard info
+    scoreboard_updated = pyqtSignal(dict)
 
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -30,7 +30,7 @@ class ScoreboardManager(QObject):
         self.client = None
         self.running = False
         self.current_data = {}
-        self.data_lock = threading.Lock()  # Initialize the lock
+        self.data_lock = threading.Lock()
 
     def start(self):
         """Launch the asyncio event loop in a background thread."""
@@ -77,13 +77,15 @@ class ScoreboardManager(QObject):
         target_device = await self._find_target_device()
         if not target_device:
             logger.error(
-                f"Device with name {SFS_DEVICE_NAME} or address {SFS_ADDRESS} not found."
+                f"Device with name {SFS_DEVICE_NAME} "
+                f"or address {SFS_ADDRESS} not found."
             )
             self.running = False
             return
 
         logger.info(
-            f"Connecting to device {target_device.name} at {target_device.address}"
+            f"Connecting to device {target_device.name}"
+            f"at {target_device.address}"
         )
         async with BleakClient(target_device.address) as client:
             self.client = client
@@ -92,7 +94,7 @@ class ScoreboardManager(QObject):
                 self.running = False
                 return
 
-            logger.info(f"Successfully connected to {target_device.address}")
+            logger.info(f"Successfull connect to {target_device.address}")
 
             # List available services and characteristics
             logger.info("Listing available services and characteristics:")
@@ -100,7 +102,8 @@ class ScoreboardManager(QObject):
                 logger.info(f"Service: {service.uuid}")
                 for char in service.characteristics:
                     logger.info(
-                        f"  Characteristic: {char.uuid} - Properties: {char.properties}"
+                        f"  Characteristic: {char.uuid} "
+                        f"- Properties: {char.properties}"
                     )
 
             # Validate and read the characteristic
@@ -114,7 +117,8 @@ class ScoreboardManager(QObject):
                 )
             else:
                 logger.error(
-                    f"Characteristic {SFS_CHARACTERISTIC_UUID} not found on the device."
+                    f"Characteristic {SFS_CHARACTERISTIC_UUID} "
+                    f"not found on the device."
                 )
                 self.running = False
 
@@ -154,9 +158,6 @@ class ScoreboardManager(QObject):
             logger.warning(
                 f"Unexpected scoreboard data len={len(raw_str)}: {raw_str}"
             )
-            logger.warning(
-                f"Unexpected scoreboard data len={len(raw_str)}: {raw_str}"
-            )
             return
 
         if raw_str == "00000000000000":
@@ -166,7 +167,7 @@ class ScoreboardManager(QObject):
         parsed_data = self._parse_sfs_link_hex(raw_str)
         if parsed_data:
             logger.info(f"Parsed data: {parsed_data}")
-            with self.data_lock:  # Acquire the lock before modifying shared data
+            with self.data_lock:
                 self.current_data = parsed_data
             self.scoreboard_updated.emit(parsed_data)
 
@@ -185,7 +186,7 @@ class ScoreboardManager(QObject):
             b7 = int(hex_pairs[5], 16)  # Match bits
             b9 = int(hex_pairs[6], 16)  # Penalty bits
         except ValueError as e:
-            logger.error(f"Invalid hex in scoreboard data: {hex_str} => {e}")
+            logger.error(f"Invalid hex in scoreboard data: {hex_str}=> {e}")
             return {}
 
         # Decode the BCD fields
@@ -252,6 +253,7 @@ def parse_matches_and_priorities(b7: int) -> dict:
       D3 => left priority (1=ON)
       D4..D7 => unused
     """
+    # TODO: Possible duplicates, comment one and check
     # bits D0..D1 (mask 0b0011)
     num_matches = b7 & 0x03
     num_matches = b7 & 0x03
