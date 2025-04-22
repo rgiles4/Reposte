@@ -169,7 +169,7 @@ class ScoreboardManager(QObject):
             self.scoreboard_updated.emit(parsed_data)
 
     def _parse_sfs_link_hex(self, hex_str: str) -> dict:
-        hex_pairs = [hex_str[i:i+2] for i in range(0, 14, 2)]
+        hex_pairs = [hex_str[i : i + 2] for i in range(0, 14, 2)] # fmt:skip
         if len(hex_pairs) != 7:
             return {}
 
