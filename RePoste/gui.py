@@ -178,12 +178,10 @@ class MainWindow(QMainWindow):
 
     def update_frame(self, pixmap):
         if pixmap:
-            self.video_feed.setPixmap(
-                pixmap.scaled(
-                    self.video_feed.size(),
-                    Qt.AspectRatioMode.KeepAspectRatio
-                )
-            )
+            size = self.video_feed.size()
+            scaled = pixmap.scaled(size, Qt.AspectRatioMode.KeepAspectRatio)
+            self.video_feed.setPixmap(scaled)
+
 
     def open_settings_window(self):
         settings_window = SettingsWindow(self.recorder)
