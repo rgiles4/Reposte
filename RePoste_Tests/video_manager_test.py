@@ -42,9 +42,7 @@ def test_start_recording():
     mock_update_callback = MagicMock()
 
     # Act
-    with patch(
-        "imageio.get_reader", return_value=MagicMock()
-        ) as mock_reader:
+    with patch("imageio.get_reader", return_value=MagicMock()) as mock_reader:
         recorder.start_recording(mock_update_callback)
 
     # Assert
@@ -485,9 +483,7 @@ def test_stop_in_app_replay_resume_live(recorder, caplog):
 
     # Assert
     assert not recorder.replaying, "❌ Replay should be stopped."
-    recorder.start_recording.assert_called_once_with(
-        recorder.update_callback
-        )
+    recorder.start_recording.assert_called_once_with(recorder.update_callback)
     assert (
         "In-app replay stopped." in caplog.text
     ), "❌ Missing replay stop log."
