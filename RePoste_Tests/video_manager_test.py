@@ -82,11 +82,9 @@ def test_capture_frame_success(recorder):
         # Ensure conversion
         # fmt: off
         (
-            recorder.replay_manager \
-            .convert_frame_to_pixmap \
-            .assert_called_once_with(
-                mock_frame
-            )
+            recorder.replay_manager
+            .convert_frame_to_pixmap
+            .assert_called_once_with(mock_frame)
         )
         # fmt: on
 
