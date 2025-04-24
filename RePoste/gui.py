@@ -175,8 +175,37 @@ class ScoreboardWidget(QWidget):
 
 class MainWindow(QMainWindow):
     def update_scoreboard(self, data):
-        if data:
-            self.scoreboard.update_from_data(data)
+        if not data:
+            return
+
+        # exit replay when clock starts(4/23)
+        if self.recorder.replaying:
+            # compute total seconds for current & last
+            curr_secs = data.get("minutes", 0) * 60 + data.get("seconds", 0)
+            last = self._last_score_data
+            last_secs = last.get("minutes", 0) * 60 + last.get("seconds", 0)
+            # clock is counting down, so a decrease means "started"
+            if curr_secs < last_secs:
+                # stop replay and resume live capture
+                self.recorder.stop_in_app_replay(resume_live=True)
+
+        # Detect scoreboard changes for replay
+        last = self._last_score_data
+        left_changed = data.get("left_score") != last.get("left_score")
+        right_changed = data.get("right_score") != last.get("right_score")
+        penalty_changed = data.get("penalty") != last.get("penalty")
+
+        if not self.recorder.replaying and (
+            left_changed or right_changed or penalty_changed
+        ):
+            # Save the last buffer to disk
+            # self.recorder.save_replay()
+            # Trigger an in-app replay
+            self.recorder.start_in_app_replay(self.update_frame)
+
+        # Update on-screen scoreboard and remember this state
+        self.scoreboard.update_from_data(data)
+        self._last_score_data = data.copy()
 
     def update_frame(self, pixmap):
         if pixmap:
@@ -231,6 +260,10 @@ class MainWindow(QMainWindow):
         self.recorder = VideoRecorder()
         self.recorder.start_recording(self.update_frame)
 
+        # store last scoreboard state for change detection *(4/23)
+        self._last_score_data: dict = {}
+
+        # Use the passed-in ScoreboardManager and set up the connection
         self.scoreboard_manager = scoreboard_manager
         self.scoreboard_manager.scoreboard_updated.connect(
             self.update_scoreboard

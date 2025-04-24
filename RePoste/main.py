@@ -4,7 +4,7 @@ from gui import MainWindow
 from scoreboard_manager import ScoreboardManager
 
 if __name__ == "__main__":
-    app = QApplication([])
+    app = QApplication(sys.argv)
 
     # Create one instance of ScoreboardManager
     scoreboard_mgr = ScoreboardManager()
