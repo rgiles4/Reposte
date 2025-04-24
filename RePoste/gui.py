@@ -245,7 +245,7 @@ class MainWindow(QMainWindow):
             # fmt: off
             self.video_feed.setPixmap(
                 pixmap.scaled(
-                    self.video_feed.size(), 
+                    self.video_feed.size(),
                     Qt.AspectRatioMode.KeepAspectRatio
                 )
                 # fmt: on
@@ -293,7 +293,7 @@ class MainWindow(QMainWindow):
         # fmt: off
         self.main_layout.addWidget(
             self.settings_button,
-            alignment=Qt.AlignmentFlag.AlignTop | 
+            alignment=Qt.AlignmentFlag.AlignTop |
             Qt.AlignmentFlag.AlignRight,
         )
         # fmt: on
