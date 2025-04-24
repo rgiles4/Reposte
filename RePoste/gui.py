@@ -13,14 +13,6 @@ from PyQt6.QtGui import QFont, QIcon
 
 from video_manager import VideoRecorder
 from settings import SettingsWindow
-from scoreboard_manager import ScoreboardManager
-
-
-class ScoreboardWidget(QWidget):
-    def __init__(self, scoreboard_manager):
-        super().__init__()
-        self.scoreboard_manager = scoreboard_manager
-        self.init_ui()
 
 
 class ScoreboardWidget(QWidget):
@@ -191,8 +183,10 @@ class ScoreboardWidget(QWidget):
                 f"keeping {current_minutes}"
             )
             minutes = current_minutes
+            seconds = current_seconds
         else:
             minutes = parsed_minutes
+            seconds = parsed_seconds
 
         # seconds = parsed_seconds no matter what
         self.timer_label.setText(f"{minutes}:{parsed_seconds:02}")
