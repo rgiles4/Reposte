@@ -20,9 +20,29 @@ class ScoreboardWidget(QWidget):
         self.scoreboard_manager = scoreboard_manager
         self.init_ui()
 
+class ScoreboardWidget(QWidget):
+    def __init__(self, scoreboard_manager):
+        super().__init__()
+        self.scoreboard_manager = scoreboard_manager
+        self.init_ui()
+
+    # (keep the rest of init_ui and update_from_data)
+
+    def get_hit_style(self, color):
+        if color == "green":
+            return "background: green; border-radius: 15px;"
+        elif color == "red":
+            return "background: red; border-radius: 15px;"
+        elif color == "white":
+            return "background: white; border-radius: 15px;"
+        else:
+            return "background: transparent; border-radius: 15px;"
+
+
     def init_ui(self):
+        self.setAttribute(Qt.WidgetAttribute.WA_StyledBackground, True)
         self.setStyleSheet(
-            "background-color: rgba(0, 0, 0, 180); border-radius: 12px; padding: 10px;"
+            "background-color: rgba(128, 128, 128, 200); border-radius: 12px; padding: 10px;"
         )
 
         font = QFont("Segoe UI", 24, QFont.Weight.Bold)
@@ -76,6 +96,30 @@ class ScoreboardWidget(QWidget):
         right_flag_layout.addWidget(self.right_red_flag)
         right_flag_layout.addWidget(self.right_yellow_flag)
 
+        # --- Left hit indicator ---
+        self.left_hit_indicator = QLabel()
+        self.left_hit_indicator.setFixedSize(30, 30)
+        self.left_hit_indicator.setStyleSheet("border-radius: 15px; background: transparent;")
+
+        # --- Right hit indicator ---
+        self.right_hit_indicator = QLabel()
+        self.right_hit_indicator.setFixedSize(30, 30)
+        self.right_hit_indicator.setStyleSheet("border-radius: 15px; background: transparent;")
+
+        # --- Left flag area (add hit indicator here) ---
+        left_flag_layout = QVBoxLayout()
+        left_flag_layout.addWidget(self.left_hit_indicator)
+        left_flag_layout.addWidget(self.left_red_flag)
+        left_flag_layout.addWidget(self.left_yellow_flag)
+        left_flag_layout.setSpacing(35)
+
+        # --- Right flag area (add hit indicator here) ---
+        right_flag_layout = QVBoxLayout()
+        right_flag_layout.addWidget(self.right_hit_indicator)
+        right_flag_layout.addWidget(self.right_red_flag)
+        right_flag_layout.addWidget(self.right_yellow_flag)
+        right_flag_layout.setSpacing(35) 
+
         # Score row layout
         score_row = QHBoxLayout()
         score_row.addLayout(left_flag_layout)
@@ -86,6 +130,7 @@ class ScoreboardWidget(QWidget):
         score_row.addWidget(self.right_score_label)
         score_row.addLayout(right_flag_layout)
 
+        # Main layout
         main_layout = QVBoxLayout()
         main_layout.addLayout(score_row)
         main_layout.addWidget(self.match_indicator, alignment=Qt.AlignmentFlag.AlignCenter)
@@ -144,8 +189,26 @@ class ScoreboardWidget(QWidget):
             "background: yellow; border-radius: 8px;" if penalty.get("penalty_right_yellow") else "background: transparent; border-radius: 8px;"
         )
 
-        self.repaint()
+        lamp_bits = data.get("lamp_bits", {})
 
+        # Determine hit color priority: green > red > white > none
+        def determine_hit_color(side):
+            if lamp_bits.get(f"{side}_green"):
+                return "green"
+            elif lamp_bits.get(f"{side}_red"):
+                return "red"
+            elif lamp_bits.get(f"{side}_white"):
+                return "white"
+            else:
+                return None
+
+        left_hit = determine_hit_color("left")
+        right_hit = determine_hit_color("right")
+
+        self.left_hit_indicator.setStyleSheet(self.get_hit_style(left_hit))
+        self.right_hit_indicator.setStyleSheet(self.get_hit_style(right_hit))
+
+        self.repaint()
 
 class MainWindow(QMainWindow):
     def update_scoreboard(self, data):
