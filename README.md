@@ -35,6 +35,3 @@ The goal of this project is to create open-source video replay software that can
     - python reposte_prototype.py
 
 
-## Assignment 5: CI/CD Python Package
-All files for Assignment 5 can be found in the python_package_exercise folder.
-
