@@ -42,15 +42,30 @@ class ScoreboardManager(QObject):
         self.thread = threading.Thread(target=self._run_loop, daemon=True)
         self.thread.start()
 
-    def stop(self):
+    def stop(self): #*(4/23)
         """Stop the asyncio event loop and disconnect the BLE client."""
         self.running = False
-        if self.loop:
-            self.loop.call_soon_threadsafe(self.loop.stop)
-        if self.thread:
-            self.thread.join()
-        if self.client:
-            self.loop.run_until_complete(self._stop_async())
+        if self.loop and self.client and getattr(self.client, "is_connected", False):
+            try:
+                #schedule async disconnect on the event loop
+                future = asyncio.run_coroutine_threadsafe(self._stop_async(), self.loop)
+                future.result(5)  # Wait for the disconnect to complete
+            except Exception as e:
+                logger.error(f"Error stopping the BLE client: {e}", exc_info=True)
+            
+            #stop the event loop
+            if self.loop:
+                self.loop.call_soon_threadsafe(self.loop.stop)
+            
+            #wait for thread to exit
+            if self.thread:
+                self.thread.join(timeout=5)
+            #housekeeping
+            self.client = None
+            self.loop = None
+            self.thread = None
+            logger.info("ScoreboardManager stopped.")
+
 
     async def _stop_async(self):
         """Asynchronously disconnect the BLE client."""
