@@ -21,8 +21,6 @@ class ScoreboardWidget(QWidget):
         self.scoreboard_manager = scoreboard_manager
         self.init_ui()
 
-    # (keep the rest of init_ui and update_from_data)
-
     def get_hit_style(self, color):
         if color == "green":
             return "background: green; border-radius: 15px;"
@@ -253,14 +251,22 @@ class MainWindow(QMainWindow):
         self.video_feed.setStyleSheet("background-color: black;")
         self.main_layout.addWidget(self.video_feed)
 
+        # Create the bottom layout for scoreboard and settings button
+        bottom_layout = QHBoxLayout()
+
+        # Add stretch to center the scoreboard (Ugly workaround)
+        bottom_layout.addStretch(1)
+        # Scoreboard setup
         self.scoreboard = ScoreboardWidget(scoreboard_manager)
         self.scoreboard.setFixedHeight(120)
-        self.main_layout.addWidget(
-            self.scoreboard,
-            alignment=Qt.AlignmentFlag.AlignBottom
-            | Qt.AlignmentFlag.AlignHCenter,
+        self.scoreboard.setFixedWidth(400)
+        bottom_layout.addWidget(
+            self.scoreboard, alignment=Qt.AlignmentFlag.AlignCenter
         )
+        # Stretch again to fit center scoreboard correctly
+        bottom_layout.addStretch(1)
 
+        # Settings button setup
         self.settings_button = QPushButton()
         self.settings_button.setFocusPolicy(Qt.FocusPolicy.NoFocus)
         icon_path = os.path.abspath("../Reposte/images/cog-svgrepo-com.svg")
@@ -271,14 +277,16 @@ class MainWindow(QMainWindow):
         self.settings_button.setIconSize(QSize(40, 40))
         self.settings_button.setFixedSize(50, 50)
         self.settings_button.clicked.connect(self.open_settings_window)
-        # fmt: off
-        self.main_layout.addWidget(
-            self.settings_button,
-            alignment=Qt.AlignmentFlag.AlignTop |
-            Qt.AlignmentFlag.AlignRight,
-        )
-        # fmt: on
 
+        # Align settings button to the right
+        bottom_layout.addWidget(
+            self.settings_button, alignment=Qt.AlignmentFlag.AlignRight
+        )
+
+        # Add the bottom layout to the main layout
+        self.main_layout.addLayout(bottom_layout)
+
+        # Initialize recorder and scoreboard manager
         self.recorder = VideoRecorder()
         self.recorder.start_recording(self.update_frame)
 
@@ -307,7 +315,7 @@ class MainWindow(QMainWindow):
         pixmap = self.current_frame
 
         # Crop the pixmap
-        # If its to tall, crop top/bottom, else crop sides
+        # If it's too tall, crop top/bottom, else crop sides
         pixmap_ratio = pixmap.width() / pixmap.height()
         label_ratio = label_size.width() / label_size.height()
 
