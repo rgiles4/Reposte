@@ -236,25 +236,6 @@ class ScoreboardWidget(QWidget):
 
 
 class MainWindow(QMainWindow):
-    def update_scoreboard(self, data):
-        if data:
-            self.scoreboard.update_from_data(data)
-
-    def update_frame(self, pixmap):
-        if pixmap:
-            # fmt: off
-            self.video_feed.setPixmap(
-                pixmap.scaled(
-                    self.video_feed.size(),
-                    Qt.AspectRatioMode.KeepAspectRatio
-                )
-                # fmt: on
-            )
-
-    def open_settings_window(self):
-        settings_window = SettingsWindow(self.recorder)
-        settings_window.exec()
-
     def __init__(self, scoreboard_manager):
         super().__init__()
         self.setWindowTitle("RePoste")
@@ -306,6 +287,55 @@ class MainWindow(QMainWindow):
             self.update_scoreboard
         )
         self.scoreboard_manager.start()
+
+        self.current_frame = None
+
+    def update_scoreboard(self, data):
+        if data:
+            self.scoreboard.update_from_data(data)
+
+    def update_frame(self, pixmap):
+        if pixmap:
+            self.current_frame = pixmap
+            self.repaint_video()
+
+    def repaint_video(self):
+        if not hasattr(self, "current_frame") or self.current_frame is None:
+            return
+
+        label_size = self.video_feed.size()
+        pixmap = self.current_frame
+
+        # Crop the pixmap
+        # If its to tall, crop top/bottom, else crop sides
+        pixmap_ratio = pixmap.width() / pixmap.height()
+        label_ratio = label_size.width() / label_size.height()
+
+        if pixmap_ratio > label_ratio:
+            new_width = int(pixmap.height() * label_ratio)
+            x_offset = (pixmap.width() - new_width) // 2
+            cropped = pixmap.copy(x_offset, 0, new_width, pixmap.height())
+        else:
+            new_height = int(pixmap.width() / label_ratio)
+            y_offset = (pixmap.height() - new_height) // 2
+            cropped = pixmap.copy(0, y_offset, pixmap.width(), new_height)
+
+        scaled = cropped.scaled(
+            label_size,
+            Qt.AspectRatioMode.IgnoreAspectRatio,
+            Qt.TransformationMode.SmoothTransformation,
+        )
+        self.video_feed.setPixmap(scaled)
+
+    def open_settings_window(self):
+        settings_window = SettingsWindow(self.recorder)
+        settings_window.exec()
+
+    def resizeEvent(self, event):
+        if hasattr(self, "overlay_widget") and hasattr(self, "video_feed"):
+            self.overlay_widget.setGeometry(self.video_feed.geometry())
+        self.repaint_video()
+        super().resizeEvent(event)
 
     def keyPressEvent(self, event):
         key = event.key()

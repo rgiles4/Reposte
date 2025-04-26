@@ -46,7 +46,7 @@ class VideoRecorder:
             self.update_callback = update_callback
 
             # Try initializing with imageio first
-            self.reader = imageio.get_reader("<video0>", "ffmpeg")
+            self.reader = imageio.get_reader("<video1>", "ffmpeg")
             logger.info("Successfully initialized video with imageio.")
 
             self.capture_frame()
